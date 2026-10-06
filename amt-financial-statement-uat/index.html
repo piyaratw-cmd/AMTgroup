@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AMT Financial Statement</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:"TH Sarabun New","Sarabun",system-ui,sans-serif;background:#eef0f8;min-height:100vh}
+.topbar{background:#1a237e;color:#fff;padding:0 24px;height:48px;display:flex;align-items:center}.topbar-logo{font-size:16px;font-weight:700}
+.main{max-width:700px;margin:24px auto;padding:0 16px 60px}
+.sec{background:#fff;border-radius:12px;border:1.5px solid #e0e0e0;margin-bottom:12px;overflow:hidden}
+.sec.a{border-color:#3949ab;box-shadow:0 0 0 3px rgba(57,73,171,.1)}.sec.d{border-color:#a5d6a7}.sec.lk{opacity:.4;pointer-events:none}
+.sh{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid #f0f0f0}.sh.dh{background:#f0fdf4;border-bottom-color:#e8f5e9}
+.sn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.an{background:#1a237e;color:#fff}.dn{background:#2e7d32;color:#fff}.ln{background:#e8eaf6;color:#9e9e9e}
+.st{font-size:15px;font-weight:700;color:#1a237e;flex:1}
+.badge{font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px}
+.ba{background:#e8eaf6;color:#3949ab;border:1px solid #c5cae9}.bd{background:#e8f5e9;color:#2e7d32;border:1px solid #a5d6a7}.bw{background:#f5f5f5;color:#9e9e9e}
+.sb{padding:18px 20px}
+.dz{border:2.5px dashed #c5cae9;border-radius:10px;padding:2rem;text-align:center;cursor:pointer;background:#f8f9ff;user-select:none}
+.dz:hover,.dz.ov{border-color:#3949ab;background:#e8eaf6}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:10px 20px;border-radius:8px;border:none;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;width:100%}
+.bp{background:#1a237e;color:#fff}.bp:hover{background:#283593}.bg{background:#2e7d32;color:#fff}.bg:hover{background:#1b5e20}
+.pw{height:8px;background:#e8eaf6;border-radius:4px;overflow:hidden;margin:10px 0}.pb{height:100%;background:#3949ab;border-radius:4px;transition:width .3s}
+.pl{font-size:12px;color:#666;text-align:center}
+.dlc{background:linear-gradient(135deg,#1a237e,#3949ab);border-radius:10px;padding:22px;text-align:center;color:#fff}
+.dls{font-size:12px;opacity:.8;margin-bottom:14px;line-height:1.6;margin-top:4px}
+.dlb{background:#fff;color:#1a237e;padding:9px 24px;border-radius:8px;font-weight:700;font-size:14px;border:none;cursor:pointer;font-family:inherit}
+.dlb:hover{background:#e8eaf6}
+.smb{background:#f8f9ff;border-radius:8px;padding:12px 14px;font-size:13px;line-height:2;border:1px solid #e8eaf6}
+.eb{background:#ffebee;border:1px solid #ef9a9a;border-radius:8px;padding:10px;font-size:13px;color:#c62828;margin-top:8px}
+.mov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
+.mb{background:#fff;border-radius:14px;padding:26px 28px;max-width:380px;width:100%;text-align:center}
+.mi{font-size:48px;margin-bottom:10px}.mt{font-size:17px;font-weight:700;margin-bottom:6px}.ms{font-size:13px;color:#666;margin-bottom:16px;line-height:1.6}
+.mtbl{background:#f8f9ff;border-radius:8px;padding:10px 14px;margin-bottom:16px;text-align:left}
+.mr{display:flex;justify-content:space-between;font-size:13px;padding:2px 0;border-bottom:1px solid #f0f0f0}.mr:last-child{border:none;font-weight:700;margin-top:4px}
+.vo{color:#2e7d32;font-family:monospace}.ve{color:#c62828;font-family:monospace}.vn{font-family:monospace}</style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-logo">AMT Financial Statement</div></div>
+<div class="main" id="main"></div>
+<div class="mov" id="mov" style="display:none"><div class="mb" id="mb"></div></div>
+<input type="file" id="fi" accept=".xlsx,.xls" style="display:none">
+<script>
+var IDX=[{"n": "เงินสดและรายการเทียบเท่าเงินสด", "c": "A"}, {"n": "เงินสด", "c": "A"}, {"n": "เงินสดย่อย", "c": "A"}, {"n": "เงินฝากธนาคาร (ออมทรัพย์/กระแสรายวัน)", "c": "A"}, {"n": "เช็ครับล่วงหน้า / เช็คระหว่างทาง", "c": "A"}, {"n": "เงินลงทุนชั่วคราว", "c": "B"}, {"n": "เงินลงทุนในหลักทรัพย์เพื่อค้า", "c": "B"}, {"n": "เงินลงทุนในหลักทรัพย์เผื่อขาย (ส่วนหมุนเวียน)", "c": "B"}, {"n": "ตั๋วเงินรับ / ตราสารหนี้ระยะสั้น", "c": "B"}, {"n": "ลูกหนี้การค้าและลูกหนี้หมุนเวียนอื่น", "c": "C"}, {"n": "ลูกหนี้การค้า", "c": "C"}, {"n": "ลูกหนี้ตามสัญญา / ลูกหนี้อื่น", "c": "C"}, {"n": "ค่าเผื่อหนี้สงสัยจะสูญ", "c": "C"}, {"n": "ลูกหนี้หมุนเวียนอื่น", "c": "C"}, {"n": "รายได้ค้างรับ", "c": "C"}, {"n": "เงินมัดจำและเงินประกันระยะสั้น", "c": "C"}, {"n": "มูลค่างานส่วนที่เสร็จยังไม่ถึงกำหนดเรียกชำระ – หมุนเวียน", "c": "C"}, {"n": "เงินให้กู้ยืมระยะสั้น", "c": "L"}, {"n": "เงินให้กู้ยืมระยะสั้น – กรรมการ/ผู้ถือหุ้น", "c": "L"}, {"n": "เงินให้กู้ยืมระยะสั้น – บุคคลภายนอก", "c": "L"}, {"n": "สินค้าคงเหลือ", "c": "E"}, {"n": "สินค้าสำเร็จรูป", "c": "E"}, {"n": "งานระหว่างทำ", "c": "E"}, {"n": "วัตถุดิบ", "c": "E"}, {"n": "วัสดุสิ้นเปลือง", "c": "E"}, {"n": "สินค้าระหว่างทาง", "c": "E"}, {"n": "ค่าเผื่อสินค้าล้าสมัย/ลดมูลค่า", "c": "E"}, {"n": "สินทรัพย์ภาษีเงินได้ของงวดปัจจุบัน", "c": "T"}, {"n": "สินทรัพย์ชีวภาพหมุนเวียน", "c": "G"}, {"n": "สินทรัพย์หมุนเวียนอื่น", "c": "F"}, {"n": "ค่าใช้จ่ายจ่ายล่วงหน้า", "c": "F"}, {"n": "ภาษีมูลค่าเพิ่มรอเครดิต", "c": "F"}, {"n": "เงินทดรองจ่าย", "c": "F"}, {"n": "สินทรัพย์หมุนเวียนอื่น ๆ", "c": "F"}, {"n": "สินทรัพย์ไม่หมุนเวียนที่ถือไว้เพื่อขาย – หมุนเวียน", "c": "F"}, {"n": "เงินฝากธนาคารที่มีภาระค้ำประกัน", "c": "A1"}, {"n": "เงินลงทุนในบริษัทย่อย", "c": "A2"}, {"n": "เงินลงทุนในการร่วมค้า", "c": "A2"}, {"n": "เงินลงทุนในบริษัทร่วม", "c": "A2"}, {"n": "เงินลงทุนระยะยาวอื่น", "c": "B1"}, {"n": "เงินลงทุนในหลักทรัพย์เผื่อขาย (ระยะยาว)", "c": "B1"}, {"n": "เงินลงทุนในหลักทรัพย์ถือจนครบกำหนด", "c": "B1"}, {"n": "ลูกหนี้การค้าและลูกหนี้ไม่หมุนเวียนอื่น", "c": "C1"}, {"n": "เงินให้กู้ยืมระยะยาว", "c": "L1"}, {"n": "เงินให้กู้ยืมระยะยาว – กรรมการ/ผู้ถือหุ้น", "c": "L1"}, {"n": "เงินให้กู้ยืมระยะยาว – บุคคลภายนอก", "c": "L1"}, {"n": "มูลค่างานส่วนที่เสร็จยังไม่ถึงกำหนดเรียกชำระ – ไม่หมุนเวียน", "c": "C1"}, {"n": "อสังหาริมทรัพย์เพื่อการลงทุน", "c": "I1"}, {"n": "ที่ดินเพื่อการลงทุน", "c": "I1"}, {"n": "อาคาร/สิ่งปลูกสร้างเพื่อการลงทุน", "c": "I1"}, {"n": "ค่าเสื่อมราคาสะสม – อสังหาริมทรัพย์เพื่อการลงทุน", "c": "I1"}, {"n": "ที่ดิน อาคารและอุปกรณ์", "c": "I"}, {"n": "ที่ดิน", "c": "I"}, {"n": "อาคาร", "c": "I"}, {"n": "ส่วนปรับปรุงอาคาร", "c": "I"}, {"n": "เครื่องจักรและอุปกรณ์", "c": "I"}, {"n": "เฟอร์นิเจอร์และเครื่องใช้สำนักงาน", "c": "I"}, {"n": "ยานพาหนะ", "c": "I"}, {"n": "เครื่องคอมพิวเตอร์และอุปกรณ์", "c": "I"}, {"n": "งานระหว่างก่อสร้าง", "c": "I"}, {"n": "ค่าเสื่อมราคาสะสม", "c": "I"}, {"n": "ค่าเผื่อการด้อยค่า – PP&E", "c": "I"}, {"n": "ค่าความนิยม", "c": "J"}, {"n": "สินทรัพย์ไม่มีตัวตน", "c": "J"}, {"n": "โปรแกรมคอมพิวเตอร์", "c": "J"}, {"n": "สิทธิบัตร / เครื่องหมายการค้า", "c": "J"}, {"n": "ลิขสิทธิ์", "c": "J"}, {"n": "ค่าตัดจำหน่ายสะสม – สินทรัพย์ไม่มีตัวตน", "c": "J"}, {"n": "สินทรัพย์ชีวภาพไม่หมุนเวียน", "c": "G1"}, {"n": "สินทรัพย์ภาษีเงินได้รอการตัดบัญชี", "c": "T1"}, {"n": "สินทรัพย์ไม่หมุนเวียนอื่น", "c": "H"}, {"n": "เงินประกัน / เงินมัดจำระยะยาว", "c": "H"}, {"n": "ค่าใช้จ่ายรอตัดบัญชีระยะยาว", "c": "H"}, {"n": "สินทรัพย์ไม่หมุนเวียนอื่น ๆ", "c": "H"}, {"n": "สินทรัพย์ไม่หมุนเวียนที่ถือไว้เพื่อขาย – ไม่หมุนเวียน", "c": "H"}, {"n": "เงินเบิกเกินบัญชีและเงินกู้ยืมระยะสั้นจากสถาบันการเงิน", "c": "AA"}, {"n": "เงินเบิกเกินบัญชีจากสถาบันการเงิน", "c": "AA"}, {"n": "เงินกู้ยืมระยะสั้นจากสถาบันการเงิน", "c": "AA"}, {"n": "ตั๋วสัญญาใช้เงิน", "c": "AA"}, {"n": "เจ้าหนี้การค้าและเจ้าหนี้หมุนเวียนอื่น", "c": "CC"}, {"n": "เจ้าหนี้การค้า", "c": "CC"}, {"n": "เจ้าหนี้กรรมการ / ผู้ถือหุ้น", "c": "CC"}, {"n": "เจ้าหนี้หมุนเวียนอื่น", "c": "CC"}, {"n": "ค่าใช้จ่ายค้างจ่าย", "c": "CC"}, {"n": "เงินประกันผลงานรับ", "c": "CC"}, {"n": "ดอกเบี้ยค้างจ่าย", "c": "CC"}, {"n": "เงินรับล่วงหน้าส่วนที่เกินกว่างานส่วนที่เสร็จ – หมุนเวียน", "c": "FF"}, {"n": "ส่วนของหนี้สินระยะยาวที่ถึงกำหนดชำระภายในหนึ่งปี", "c": "AA1"}, {"n": "ส่วนของหนี้สินตามสัญญาเช่าเงินทุนที่ถึงกำหนดชำระภายในหนึ่งปี", "c": "KK"}, {"n": "เงินกู้ยืมระยะสั้น", "c": "LL"}, {"n": "เงินกู้ยืมระยะสั้น – กรรมการ/ผู้ถือหุ้น", "c": "LL"}, {"n": "เงินกู้ยืมระยะสั้น – บุคคลภายนอก", "c": "LL"}, {"n": "ภาษีเงินได้นิติบุคคลค้างจ่าย", "c": "TT"}, {"n": "ประมาณการหนี้สินหมุนเวียนสำหรับผลประโยชน์พนักงาน", "c": "MM"}, {"n": "ประมาณการหนี้สินระยะสั้นอื่น", "c": "FF"}, {"n": "หนี้สินหมุนเวียนอื่น", "c": "FF"}, {"n": "รายได้รับล่วงหน้า / ค่าบริการรับล่วงหน้า", "c": "FF"}, {"n": "ภาษีหัก ณ ที่จ่ายค้างจ่าย", "c": "FF"}, {"n": "ภาษีมูลค่าเพิ่มค้างจ่าย", "c": "FF"}, {"n": "เงินรับล่วงหน้าจากลูกค้า", "c": "FF"}, {"n": "หนี้สินหมุนเวียนอื่น ๆ", "c": "FF"}, {"n": "เงินกู้ยืมระยะยาว", "c": "AA1"}, {"n": "เงินกู้ยืมระยะยาวจากสถาบันการเงิน", "c": "AA1"}, {"n": "หัก: ส่วนที่ถึงกำหนดภายในหนึ่งปี", "c": "AA1"}, {"n": "หนี้สินตามสัญญาเช่าเงินทุน", "c": "KK"}, {"n": "หนี้สินตามสัญญาเช่าเงินทุน – รวม", "c": "KK"}, {"n": "หัก: ส่วนที่ถึงกำหนดภายในหนึ่งปี", "c": "KK"}, {"n": "เจ้าหนี้การค้าและเจ้าหนี้ไม่หมุนเวียนอื่น", "c": "CC1"}, {"n": "เงินรับล่วงหน้าส่วนที่เกินกว่างานส่วนที่เสร็จ – ไม่หมุนเวียน", "c": "HH"}, {"n": "หนี้สินภาษีเงินได้รอการตัดบัญชี", "c": "TT1"}, {"n": "ประมาณการหนี้สินไม่หมุนเวียนสำหรับผลประโยชน์พนักงาน", "c": "MM"}, {"n": "สำรองผลประโยชน์พนักงานเมื่อเกษียณ", "c": "MM"}, {"n": "ประมาณการหนี้สินระยะยาวอื่น", "c": "HH"}, {"n": "หนี้สินไม่หมุนเวียนอื่น", "c": "HH"}, {"n": "เงินประกันรับระยะยาว", "c": "HH"}, {"n": "หนี้สินไม่หมุนเวียนอื่น ๆ", "c": "HH"}, {"n": "ทุนเรือนหุ้น", "c": "N"}, {"n": "ทุนจดทะเบียน – หุ้นสามัญ", "c": "N"}, {"n": "ทุนจดทะเบียน – หุ้นบุริมสิทธิ", "c": "N"}, {"n": "ทุนที่ชำระแล้ว – หุ้นสามัญ", "c": "N"}, {"n": "ทุนที่ชำระแล้ว – หุ้นบุริมสิทธิ", "c": "N"}, {"n": "ส่วนเกินมูลค่าหุ้น", "c": "N"}, {"n": "ส่วนเกินมูลค่าหุ้นสามัญ", "c": "N"}, {"n": "ส่วนเกินมูลค่าหุ้นบุริมสิทธิ", "c": "N"}, {"n": "ส่วนเกิน (ต่ำกว่า) ทุนอื่น", "c": "N"}, {"n": "กำไร (ขาดทุน) สะสม", "c": "N"}, {"n": "ทุนสำรองตามกฎหมาย", "c": "N"}, {"n": "สำรองอื่น ๆ (จัดสรรแล้ว)", "c": "N"}, {"n": "กำไร (ขาดทุน) สะสมที่ยังไม่ได้จัดสรร", "c": "N"}, {"n": "ส่วนได้เสีย – ทุนอื่น", "c": "N"}, {"n": "องค์ประกอบอื่นของส่วนของผู้ถือหุ้น", "c": "N"}, {"n": "ผลกำไร (ขาดทุน) จากการปรับมูลค่าเงินลงทุน", "c": "N"}, {"n": "ผลจากการตีมูลค่าสินทรัพย์ใหม่", "c": "N"}, {"n": "ส่วนได้เสียที่ไม่มีอำนาจควบคุม (NCI)", "c": "N"}, {"n": "รายได้จากการขายหรือการให้บริการ", "c": "R1"}, {"n": "รายได้จากการขายสินค้า", "c": "R1"}, {"n": "รายได้จากการให้บริการ", "c": "R2"}, {"n": "รายได้จากสัญญาก่อสร้าง", "c": "R2"}, {"n": "ส่วนลดรับ / รายได้อื่นจากการขาย", "c": "R1"}, {"n": "รายได้อื่น", "c": "R3"}, {"n": "รายได้ดอกเบี้ย", "c": "R5"}, {"n": "เงินปันผลรับ", "c": "R3"}, {"n": "กำไรจากการจำหน่ายสินทรัพย์", "c": "R4"}, {"n": "กำไรจากอัตราแลกเปลี่ยน", "c": "R4"}, {"n": "รายได้จากการให้เช่า", "c": "R3"}, {"n": "รายได้อุดหนุน / เงินช่วยเหลือรัฐบาล", "c": "R3"}, {"n": "รายได้อื่น ๆ", "c": "R3"}, {"n": "ต้นทุนขายหรือต้นทุนการให้บริการ", "c": "X1"}, {"n": "ต้นทุนสินค้าขาย", "c": "X1"}, {"n": "ต้นทุนการให้บริการ", "c": "X2"}, {"n": "ต้นทุนงานก่อสร้าง", "c": "X1"}, {"n": "ค่าใช้จ่ายในการขาย", "c": "X3"}, {"n": "ค่าขนส่ง", "c": "X3"}, {"n": "ค่าโฆษณา", "c": "X3"}, {"n": "ค่านายหน้าขาย", "c": "X3"}, {"n": "ค่าใช้จ่ายในการบริหาร", "c": "X4"}, {"n": "เงินเดือนและค่าจ้าง", "c": "X4"}, {"n": "ค่าสวัสดิการพนักงาน", "c": "X4"}, {"n": "ค่าเสื่อมราคา", "c": "X4"}, {"n": "ค่าตัดจำหน่าย", "c": "X4"}, {"n": "ค่าเช่า", "c": "X4"}, {"n": "ค่าสาธารณูปโภค", "c": "X4"}, {"n": "ค่าสอบบัญชี / ค่าที่ปรึกษา", "c": "X4"}, {"n": "ค่าใช้จ่ายทั่วไปสำนักงาน", "c": "X4"}, {"n": "ผลขาดทุนจากการลดลงของมูลค่าสินทรัพย์", "c": "X4"}, {"n": "ค่าใช้จ่ายอื่น", "c": "X5"}, {"n": "ขาดทุนจากการจำหน่ายสินทรัพย์", "c": "X6"}, {"n": "ขาดทุนจากอัตราแลกเปลี่ยน", "c": "X6"}, {"n": "ค่าใช้จ่ายอื่น ๆ", "c": "X5"}, {"n": "การเปลี่ยนแปลงในสินค้าสำเร็จรูปและงานระหว่างทำ", "c": "X1"}, {"n": "วัตถุดิบและวัสดุสิ้นเปลืองใช้ไป", "c": "X1"}, {"n": "ค่าใช้จ่ายผลประโยชน์พนักงาน", "c": "X4"}, {"n": "ค่าเสื่อมราคาและค่าตัดจำหน่าย (by Nature)", "c": "X4"}, {"n": "ต้นทุนทางการเงิน / ดอกเบี้ยจ่าย", "c": "X7"}, {"n": "ภาษีเงินได้นิติบุคคล", "c": "X8"}];
+var BSPL=[{"r": 8, "c": "A", "s": ""}, {"r": 9, "c": "B", "s": ""}, {"r": 10, "c": "C", "s": ""}, {"r": 11, "c": "L", "s": ""}, {"r": 12, "c": "E", "s": ""}, {"r": 13, "c": "F", "s": ""}, {"r": 16, "c": "A1", "s": ""}, {"r": 17, "c": "L1", "s": ""}, {"r": 18, "c": "A2", "s": ""}, {"r": 19, "c": "I1", "s": ""}, {"r": 20, "c": "I", "s": ""}, {"r": 21, "c": "J", "s": ""}, {"r": 22, "c": "H", "s": ""}, {"r": 41, "c": "AA", "s": "-"}, {"r": 42, "c": "CC", "s": "-"}, {"r": 43, "c": "LL", "s": "-"}, {"r": 46, "c": "TT", "s": "-"}, {"r": 47, "c": "FF", "s": "-"}, {"r": 50, "c": "AA1", "s": "-"}, {"r": 51, "c": "KK", "s": "-"}, {"r": 52, "c": "LL1", "s": "-"}, {"r": 53, "c": "MM", "s": "-"}, {"r": 54, "c": "HH", "s": "-"}, {"r": 85, "c": "R1", "s": "-"}, {"r": 86, "c": "R2", "s": "-"}, {"r": 87, "c": "R4", "s": "-"}, {"r": 88, "c": "R5", "s": "-"}, {"r": 89, "c": "R3", "s": "-"}, {"r": 93, "c": "X1", "s": ""}, {"r": 94, "c": "X2", "s": ""}, {"r": 95, "c": "X3", "s": ""}, {"r": 96, "c": "X4", "s": ""}, {"r": 99, "c": "X5", "s": ""}, {"r": 101, "c": "X6", "s": ""}];
+var PRYR={"1000": "A", "1001": "A", "1002": "A", "1100": "C", "1010": "A", "1210": "E", "1211": "E", "1300": "F", "1301": "F", "1302": "C", "1310": "C", "1401": "C", "1402": "F", "1403": "C", "1407": "F", "1408": "H", "1409": "F", "1500": "I", "1501": "I", "1510": "I", "1511": "I", "1520": "J", "1521": "J", "1530": "I", "1531": "I", "1540": "I", "1541": "I", "2000": "CC", "2001": "CC", "2100": "CC", "2110": "CC", "2200": "TT", "2201": "CC", "2202": "CC", "2203": "LL", "2204": "CC", "2205": "CC", "2300": "FF", "4000": "R1", "5000": "X1", "5010": "X1", "5020": "X1", "5110": "X1", "5200": "X1", "5300": "X1", "5400": "X1", "6000": "X4", "6001": "X4", "6002": "X4", "6003": "X3", "6005": "X4", "6009": "X4", "6010": "X4", "6011": "X4", "6012": "X4", "6013": "X4", "6014": "X4", "6015": "X4", "6016": "X4", "6017": "X3", "6018": "X3", "6019": "X3", "6020": "X4", "6021": "X4", "6022": "X4", "6023": "X4", "6024": "X4", "6025": "X4", "6026": "X4", "6028": "X4", "6029": "X4", "6030": "X4", "6032": "X4", "6040": "X4", "6041": "X4", "6043": "X4", "6044": "X4", "6100": "X4", "6101": "X4", "6103": "X4", "7000": "R2", "7010": "X4", "7020": "R3", "7030": "R4"};
+var MERGES_BS=[{"s": {"r": 77, "c": 0}, "e": {"r": 77, "c": 11}}, {"s": {"r": 76, "c": 16}, "e": {"r": 76, "c": 20}}, {"s": {"r": 73, "c": 0}, "e": {"r": 73, "c": 11}}, {"s": {"r": 79, "c": 0}, "e": {"r": 79, "c": 11}}, {"s": {"r": 2, "c": 0}, "e": {"r": 2, "c": 11}}, {"s": {"r": 112, "c": 0}, "e": {"r": 112, "c": 11}}, {"s": {"r": 1, "c": 0}, "e": {"r": 1, "c": 11}}, {"s": {"r": 32, "c": 0}, "e": {"r": 32, "c": 11}}, {"s": {"r": 31, "c": 0}, "e": {"r": 31, "c": 11}}, {"s": {"r": 108, "c": 0}, "e": {"r": 108, "c": 11}}, {"s": {"r": 34, "c": 0}, "e": {"r": 34, "c": 11}}, {"s": {"r": 80, "c": 0}, "e": {"r": 80, "c": 11}}, {"s": {"r": 28, "c": 0}, "e": {"r": 28, "c": 11}}, {"s": {"r": 111, "c": 0}, "e": {"r": 111, "c": 11}}, {"s": {"r": 27, "c": 0}, "e": {"r": 27, "c": 11}}, {"s": {"r": 76, "c": 0}, "e": {"r": 76, "c": 11}}, {"s": {"r": 33, "c": 0}, "e": {"r": 33, "c": 11}}, {"s": {"r": 72, "c": 0}, "e": {"r": 72, "c": 11}}, {"s": {"r": 0, "c": 0}, "e": {"r": 0, "c": 11}}, {"s": {"r": 35, "c": 0}, "e": {"r": 35, "c": 11}}, {"s": {"r": 31, "c": 16}, "e": {"r": 31, "c": 20}}, {"s": {"r": 78, "c": 0}, "e": {"r": 78, "c": 11}}];
+var MERGES_P68=[{"s": {"r": 4, "c": 0}, "e": {"r": 5, "c": 0}}, {"s": {"r": 4, "c": 2}, "e": {"r": 4, "c": 3}}, {"s": {"r": 4, "c": 6}, "e": {"r": 4, "c": 7}}, {"s": {"r": 4, "c": 4}, "e": {"r": 4, "c": 5}}, {"s": {"r": 4, "c": 8}, "e": {"r": 4, "c": 9}}, {"s": {"r": 4, "c": 1}, "e": {"r": 5, "c": 1}}];
+var LCACHE={"4": "(\u0e2b\u0e19\u0e48\u0e27\u0e22 : \u0e1a\u0e32\u0e17)", "11": 0, "61": 1000000};
+var TB64="";
+
+
+var S={step:0,file:null,tb:null,mapped:null,prog:0,sm:null,buf:null,err:null};
+function fN(n){if(!n||Math.abs(n)<0.005)return '\u2013';return Math.abs(n).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function nm(s){return String(s||'').toLowerCase().replace(/\s+/g,' ').trim();}
+function acNo(d){var m=String(d||'').match(/^(\d+)/);return m?m[1]:'';}
+
+function findIdx(desc){
+  var best=null,bs=0,dl=nm(desc);
+  IDX.forEach(function(item){
+    var il=nm(item.n),sc=0;
+    if(il===dl)sc=1;
+    else if(il.indexOf(dl)>=0||dl.indexOf(il)>=0)sc=0.85;
+    else{var kw=il.split(' '),mt=0;kw.forEach(function(w){if(w.length>1&&dl.indexOf(w)>=0)mt++;});sc=kw.length?mt/kw.length:0;}
+    if(sc>bs){bs=sc;best=item.c;}
+  });
+  return bs>=0.6?{code:best,conf:'high'}:bs>=0.3?{code:best,conf:'mid'}:{code:null,conf:'low'};
+}
+
+function parseTB(file,cb){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+      var sn=null;
+      ['TBdraft','TB','Trial Balance','TrialBalance','\u0e07\u0e1a\u0e17\u0e14\u0e25\u0e2d\u0e07'].forEach(function(n){if(!sn&&wb.SheetNames.indexOf(n)>=0)sn=n;});
+      if(!sn)sn=wb.SheetNames[0];
+      var ws=wb.Sheets[sn];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:null});
+      var hdr=-1,dc=-1,cc=-1,nc=1;
+      for(var r=0;r<Math.min(8,rows.length);r++){
+        if(!rows[r])continue;
+        var fd=false,fc2=false;
+        for(var c=0;c<rows[r].length;c++){
+          var v=nm(String(rows[r][c]||''));
+          if(v==='debit'||v==='dr'){dc=c;fd=true;}
+          if(v==='credit'||v==='cr'){cc=c;fc2=true;}
+          if(v.indexOf('description')>=0||v.indexOf('\u0e23\u0e32\u0e22\u0e01\u0e32\u0e23')>=0)nc=c;
+        }
+        if(fd&&fc2){hdr=r;break;}
+      }
+      if(hdr<0){hdr=1;dc=2;cc=4;nc=1;}
+      var result=[],tdr=0,tcr=0;
+      for(var r=hdr+1;r<rows.length;r++){
+        var row=rows[r];if(!row)continue;
+        var d=String(row[nc]||'').trim();
+        if(!d||/^(total|\u0e23\u0e27\u0e21|TOTAL|grand)/i.test(d))continue;
+        var dr=parseFloat(String(row[dc]||'').replace(/,/g,''))||0;
+        var cr=parseFloat(String(row[cc]||'').replace(/,/g,''))||0;
+        if(dr===0&&cr===0)continue;
+        tdr+=dr;tcr+=cr;
+        result.push({desc:d,dr:dr,cr:cr,no:acNo(d)});
+      }
+      cb(null,{rows:result,totalDr:tdr,totalCr:tcr});
+    }catch(err){cb(err,null);}
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function mapAccounts(rows){
+  return rows.map(function(row){
+    var no=row.no,idx=null,src='',conf='high';
+    var p=no?no.charAt(0):'';
+    if(no&&PRYR[no]){idx=PRYR[no];src='prior';}
+    else if(p==='3'){src='equity';}
+    else if(p==='5'){var fz=findIdx(row.desc);idx=fz.code&&fz.conf!=='low'?fz.code:'X1';src='prefix';conf=fz.conf;}
+    else if(p==='6'){var fz=findIdx(row.desc);idx=fz.code&&fz.conf!=='low'?fz.code:'X4';src='prefix';conf=fz.conf;}
+    else{var fz=findIdx(row.desc);idx=fz.code;src='dbd';conf=fz.conf;}
+    return Object.assign({},row,{idx:idx,src:src,conf:conf});
+  });
+}
+
+function genExcel(mapped){
+  /* Load template */
+  var wb=XLSX.read(TB64,{type:'base64',cellStyles:true,cellNF:true,cellDates:true,bookFiles:true});
+  var ws68=wb.Sheets['Pending 68'];
+  var wsBS=wb.Sheets['BS-PL'];
+  if(!ws68)throw new Error('\u0e44\u0e21\u0e48\u0e1e\u0e1a Sheet Pending 68');
+  if(!wsBS)throw new Error('\u0e44\u0e21\u0e48\u0e1e\u0e1a Sheet BS-PL');
+
+  /* ── Pending 68: write data rows ── */
+  var startR=7;
+  mapped.forEach(function(a,i){
+    var r=startR+i;
+    /* Preserve existing cell style (for rows that had default style in template) */
+    var existK=ws68['K'+r];var sK=existK&&existK.s?existK.s:undefined;
+    ws68['A'+r]={v:a.desc,t:'s'};
+    if(a.dr>0){ws68['I'+r]={v:a.dr,t:'n'};}else{delete ws68['I'+r];}
+    if(a.cr>0){ws68['J'+r]={v:a.cr,t:'n'};}else{delete ws68['J'+r];}
+    /* col K formula: =+I{r}-J{r} (MUST have + prefix to match template) */
+    var kCell={f:'+I'+r+'-J'+r,t:'n',v:a.dr-a.cr};
+    if(sK)kCell.s=sK;
+    ws68['K'+r]=kCell;
+    if(a.idx&&a.src!=='equity'){ws68['L'+r]={v:a.idx,t:'s'};}else{delete ws68['L'+r];}
+  });
+  /* Extend !ref */
+  var lastR=startR+mapped.length-1;
+  var oRef=ws68['!ref']||'A1:K59';
+  var oLast=parseInt((oRef.split(':')[1]||'K59').replace(/[^0-9]/g,''))||59;
+  ws68['!ref']='A1:L'+Math.max(lastR,oLast);
+  /* Re-apply Pending 68 merge ranges */
+  ws68['!merges']=MERGES_P68;
+
+  /* ── BS-PL: write SUMIF to col J, preserve existing style ── */
+  BSPL.forEach(function(item){
+    var r=item.r;
+    /* Preserve existing J cell style */
+    var existJ=wsBS['J'+r];
+    var sJ=existJ&&existJ.s?existJ.s:undefined;
+    var f=item.s==='-'
+      ?"-SUMIF('Pending 68'!L:L,'BS-PL'!M"+r+",'Pending 68'!K:K)"
+      :"SUMIF('Pending 68'!L:L,'BS-PL'!M"+r+",'Pending 68'!K:K)";
+    var jCell={f:f,t:'n',v:0};
+    if(sJ)jCell.s=sJ;
+    wsBS['J'+r]=jCell;
+  });
+  /* Restore BS-PL col L cached values */
+  Object.keys(LCACHE).forEach(function(row){
+    var v=LCACHE[row];
+    if(v!==null&&v!==undefined){
+      var t=typeof v==='number'?'n':'s';
+      wsBS['L'+row]={v:v,t:t};
+    }
+  });
+  /* Re-apply ALL BS-PL merge ranges (critical for header centering) */
+  wsBS['!merges']=MERGES_BS;
+
+  return XLSX.write(wb,{bookType:'xlsx',type:'array',compression:true});
+}
+
+function buildSM(m){
+  return{total:m.length,
+    prior:m.filter(function(a){return a.src==='prior';}).length,
+    high:m.filter(function(a){return a.src!=='prior'&&a.src!=='equity'&&a.conf==='high';}).length,
+    mid:m.filter(function(a){return a.conf==='mid';}).length,
+    none:m.filter(function(a){return !a.idx&&a.src!=='equity';}).length,
+    eq:m.filter(function(a){return a.src==='equity';}).length};
+}
+
+function showModal(dr,cr){
+  var diff=Math.abs(dr-cr),ok=diff<1;
+  document.getElementById('mb').innerHTML=
+    '<div class="mi">'+(ok?'\u2705':'\u274c')+'</div>'
+    +'<div class="mt" style="color:'+(ok?'#2e7d32':'#c62828')+'">'+(ok?'TB \u0e1c\u0e48\u0e32\u0e19 Balance':'TB \u0e44\u0e21\u0e48\u0e1c\u0e48\u0e32\u0e19')+'</div>'
+    +'<div class="ms">'+(ok?'Debit = Credit':'\u0e2d\u0e31\u0e1b\u0e42\u0e2b\u0e25\u0e14\u0e43\u0e2b\u0e21\u0e48')+'</div>'
+    +'<div class="mtbl">'
+    +'<div class="mr"><span>Total Debit</span><span class="vn">'+fN(dr)+'</span></div>'
+    +'<div class="mr"><span>Total Credit</span><span class="vn">'+fN(cr)+'</span></div>'
+    +'<div class="mr"><span>Difference</span><span class="'+(ok?'vo':'ve')+'">'+fN(diff)+(ok?' \u2713':' \u2717')+'</span></div>'
+    +'</div>'
+    +'<button class="btn '+(ok?'bg':'bp')+'" onclick="closeModal('+(ok?'true':'false')+')">'+
+    (ok?'\u2713 \u0e14\u0e33\u0e40\u0e19\u0e34\u0e19\u0e01\u0e32\u0e23\u0e15\u0e48\u0e2d':'\u0e1b\u0e34\u0e14')+'</button>';
+  document.getElementById('mov').style.display='flex';
+}
+function closeModal(ok){document.getElementById('mov').style.display='none';if(ok===true||ok==='true')S.step=1;render();}
+document.getElementById('mov').onclick=function(e){if(e.target===this)closeModal(false);};
+
+function handleFile(f){S.file=f;S.err=null;parseTB(f,function(err,r){if(err){S.err='\u0e2d\u0e48\u0e32\u0e19\u0e44\u0e1f\u0e25\u0e4c\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08: '+err.message;render();return;}S.tb=r;showModal(r.totalDr,r.totalCr);});}
+function resetFile(){S={step:0,file:null,tb:null,mapped:null,prog:0,sm:null,buf:null,err:null};render();}
+function doGen(){
+  S.step=2;S.prog=0;S.err=null;render();
+  setTimeout(function(){
+    S.mapped=mapAccounts(S.tb.rows);S.sm=buildSM(S.mapped);S.prog=50;render();
+    setTimeout(function(){
+      try{S.buf=genExcel(S.mapped);S.prog=100;S.step=3;render();}
+      catch(e){S.err='\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e44\u0e1f\u0e25\u0e4c\u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08: '+e.message;S.step=1;render();}
+    },500);
+  },300);
+}
+function doDL(){
+  if(!S.buf)return;
+  var blob=new Blob([new Uint8Array(S.buf)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Draft_T2_2568.xlsx';
+  document.body.appendChild(a);a.click();setTimeout(function(){document.body.removeChild(a);},1000);
+}
+function setupDZ(){
+  var dz=document.getElementById('dz');if(!dz)return;
+  dz.ondragover=function(e){e.preventDefault();dz.classList.add('ov');};
+  dz.ondragleave=function(){dz.classList.remove('ov');};
+  dz.ondrop=function(e){e.preventDefault();dz.classList.remove('ov');if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);};
+  dz.onclick=function(){document.getElementById('fi').click();};
+}
+document.getElementById('fi').onchange=function(e){if(e.target.files[0])handleFile(e.target.files[0]);};
+
+function render(){
+  var h='',st=S.step;
+  h+='<div class="sec '+(st===0?'a':st>=1?'d':'a')+'">'
+   +'<div class="sh'+(st>=1?' dh':'')+'"><div class="sn '+(st>=1?'dn':'an')+'">'+(st>=1?'\u2713':'1')+'</div>'
+   +'<div class="st">\u0e2d\u0e31\u0e1b\u0e42\u0e2b\u0e25\u0e14 Trial Balance</div>'
+   +(st>=1?'<span class="badge bd">\u0e2d\u0e31\u0e1b\u0e42\u0e2b\u0e25\u0e14\u0e41\u0e25\u0e49\u0e27</span>':'<span class="badge ba">\u0e01\u0e33\u0e25\u0e31\u0e07\u0e43\u0e0a\u0e49\u0e07\u0e32\u0e19</span>')
+   +'</div><div class="sb">';
+  if(st===0){
+    h+='<div class="dz" id="dz"><div style="font-size:38px;margin-bottom:8px">\ud83d\udcca</div>'
+     +'<div style="font-weight:600;font-size:15px;color:#1a237e;margin-bottom:4px">\u0e25\u0e32\u0e01\u0e27\u0e32\u0e07\u0e44\u0e1f\u0e25\u0e4c \u0e2b\u0e23\u0e37\u0e2d\u0e04\u0e25\u0e34\u0e01\u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e40\u0e25\u0e37\u0e2d\u0e01</div>'
+     +'<div style="color:#9fa8da;font-size:12px">TB (.xlsx) \u00b7 \u0e23\u0e2d\u0e07\u0e23\u0e31\u0e1a\u0e17\u0e38\u0e01 Format</div></div>';
+    if(S.err)h+='<div class="eb">'+S.err+'</div>';
+  }else{
+    var fn=S.file?S.file.name:'-',cnt=S.tb?S.tb.rows.length:0;
+    h+='<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:#f0fdf4;border-radius:8px;border:1px solid #a7f3d0">'
+     +'<div style="font-size:22px">\ud83d\udcca</div><div>'
+     +'<div style="font-size:13px;font-weight:600;color:#065f46">'+fn+'</div>'
+     +'<div style="font-size:11px;color:#6b7280;margin-top:1px">'+cnt+' \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23 \u00b7 Balance \u2713</div></div>'
+     +(st===1?'<div style="margin-left:auto;cursor:pointer;color:#9e9e9e;font-size:20px" onclick="resetFile()">&times;</div>':'')+'</div>';
+  }
+  h+='</div></div>';
+
+  var s2c='sec '+(st>=3?'d':st>=1?'a':'lk');
+  h+='<div class="'+s2c+'"><div class="sh'+(st>=3?' dh':'')+'"><div class="sn '+(st>=3?'dn':st>=1?'an':'ln')+'">'+(st>=3?'\u2713':'2')+'</div>'
+   +'<div class="st">\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e07\u0e1a\u0e01\u0e32\u0e23\u0e40\u0e07\u0e34\u0e19</div>'
+   +(st>=3?'<span class="badge bd">\u0e40\u0e2a\u0e23\u0e47\u0e08</span>':st===2?'<span class="badge ba">\u0e01\u0e33\u0e25\u0e31\u0e07\u0e2a\u0e23\u0e49\u0e32\u0e07...</span>':st===1?'<span class="badge ba">\u0e1e\u0e23\u0e49\u0e2d\u0e21</span>':'<span class="badge bw">\u0e23\u0e2d</span>')
+   +'</div><div class="sb">';
+  if(st===1){h+='<button class="btn bp" onclick="doGen()">\u25b6 \u0e2a\u0e23\u0e49\u0e32\u0e07\u0e07\u0e1a\u0e01\u0e32\u0e23\u0e40\u0e07\u0e34\u0e19</button>'+(S.err?'<div class="eb">'+S.err+'</div>':'');}
+  else if(st===2){h+='<div class="pw"><div class="pb" style="width:'+S.prog+'%"></div></div><div class="pl">\u0e01\u0e33\u0e25\u0e31\u0e07\u0e1b\u0e23\u0e30\u0e21\u0e27\u0e25\u0e1c\u0e25 '+S.prog+'%</div>';}
+  else if(st>=3&&S.sm){var sm=S.sm;h+='<div class="smb"><b>\u0e1a\u0e31\u0e0d\u0e0a\u0e35:</b> '+sm.total+' \u0e23\u0e32\u0e22\u0e01\u0e32\u0e23<br>\u2705 <b>Map \u0e1b\u0e35\u0e01\u0e48\u0e2d\u0e19:</b> '+sm.prior+(sm.high?'<br>\ud83d\udfe2 <b>DBD High:</b> '+sm.high:'')+(sm.mid?'<br>\ud83d\udfe1 <b>DBD Mid:</b> '+sm.mid:'')+(sm.none?'<br>\ud83d\udd34 <b>\u0e44\u0e21\u0e48\u0e21\u0e35 Index:</b> '+sm.none:'')+(sm.eq?'<br>\ud83d\udfe3 <b>Equity:</b> '+sm.eq:'')+'</div>';}
+  else{h+='<div style="text-align:center;color:#bbb;font-size:13px;padding:4px 0">\u0e2d\u0e31\u0e1b\u0e42\u0e2b\u0e25\u0e14 TB \u0e01\u0e48\u0e2d\u0e19</div>';}
+  h+='</div></div>';
+
+  var s3c='sec '+(st>=3?'d':'lk');
+  h+='<div class="'+s3c+'"><div class="sh'+(st>=3?' dh':'')+'"><div class="sn '+(st>=3?'dn':'ln')+'">'+(st>=3?'\u2713':'3')+'</div>'
+   +'<div class="st">Export Excel</div>'
+   +(st>=3?'<span class="badge bd">\u0e1e\u0e23\u0e49\u0e2d\u0e21 Download</span>':'<span class="badge bw">\u0e23\u0e2d</span>')
+   +'</div><div class="sb">';
+  if(st>=3){h+='<div class="dlc"><div style="font-size:40px;margin-bottom:8px">\ud83d\udce5</div><div style="font-size:16px;font-weight:700;margin-bottom:4px">\u0e07\u0e1a Draft \u0e1e\u0e23\u0e49\u0e2d\u0e21\u0e41\u0e25\u0e49\u0e27</div><div class="dls">Draft_T2_2568.xlsx \u00b7 Pending 68 \u00b7 BS-PL SUMIF \u00b7 Formatting \u0e04\u0e23\u0e1a</div><button class="dlb" onclick="doDL()">\u2b07 \u0e14\u0e32\u0e27\u0e19\u0e4c\u0e42\u0e2b\u0e25\u0e14 Excel</button></div><p style="font-size:12px;color:#888;text-align:center;margin-top:8px">\u0e40\u0e1b\u0e34\u0e14\u0e43\u0e19 Excel \u2192 \u0e01\u0e14 <b>F9</b> \u0e40\u0e1e\u0e37\u0e48\u0e2d\u0e04\u0e33\u0e19\u0e27\u0e13\u0e2a\u0e39\u0e15\u0e23 SUMIF</p>';}
+  else{h+='<div style="text-align:center;color:#bbb;font-size:13px;padding:4px 0">\u0e2a\u0e23\u0e49\u0e32\u0e07\u0e07\u0e1a\u0e01\u0e48\u0e2d\u0e19</div>';}
+  h+='</div></div>';
+  document.getElementById('main').innerHTML=h;setTimeout(setupDZ,0);
+}
+/* Version 2 renders after the original workbook engine has loaded. */
+
+</script>
+<style id="v2-styles">
+:root{--navy:#172554;--blue:#2563eb;--blue2:#1d4ed8;--ink:#172033;--muted:#64748b;--line:#e2e8f0;--bg:#f5f7fb;--green:#15803d;--red:#dc2626;--amber:#b45309}
+body{font-family:"Sarabun","Noto Sans Thai",system-ui,-apple-system,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+.topbar{height:64px;padding:0 max(22px,calc((100vw - 1080px)/2));background:#fff;color:var(--navy);border-bottom:1px solid var(--line);box-shadow:0 1px 3px rgba(15,23,42,.04)}
+.topbar-logo{font-size:18px;letter-spacing:-.2px}.main{max-width:1080px;margin:0 auto;padding:38px 24px 64px}
+.v2-hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:26px}.v2-eyebrow{color:var(--blue);font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.v2-title{font-size:30px;line-height:1.25;letter-spacing:-.6px;margin-top:7px;color:var(--navy)}.v2-sub{font-size:14px;color:var(--muted);margin-top:8px}.v2-step{font-size:13px;color:var(--muted);white-space:nowrap}.v2-step b{color:var(--blue)}
+.v2-card{background:#fff;border:1px solid var(--line);border-radius:18px;box-shadow:0 10px 32px rgba(15,23,42,.055);overflow:hidden}.v2-cardhead{display:flex;align-items:center;gap:13px;padding:22px 24px;border-bottom:1px solid #eef2f7}.v2-icon{width:42px;height:42px;border-radius:12px;background:#eff6ff;color:var(--blue);display:grid;place-items:center;font-size:20px}.v2-headcopy{flex:1}.v2-headcopy h2{font-size:17px;color:var(--navy)}.v2-headcopy p{font-size:12px;color:var(--muted);margin-top:3px}.v2-pill{font-size:11px;font-weight:700;padding:6px 10px;border-radius:999px;background:#eff6ff;color:var(--blue)}.v2-body{padding:24px}
+.v2-drop{border:1.5px dashed #93b4ee;background:linear-gradient(180deg,#f8fbff,#f5f8ff);border-radius:15px;min-height:190px;display:grid;place-items:center;text-align:center;padding:28px;cursor:pointer;transition:.2s}.v2-drop:hover,.v2-drop.ov{border-color:var(--blue);background:#eef5ff;transform:translateY(-1px)}.v2-uploadmark{width:52px;height:52px;margin:0 auto 13px;border-radius:16px;background:#fff;color:var(--blue);display:grid;place-items:center;font-size:24px;box-shadow:0 5px 18px rgba(37,99,235,.13)}.v2-drop strong{display:block;font-size:15px;color:var(--navy)}.v2-drop span{display:block;font-size:12px;color:var(--muted);margin-top:6px}.v2-or{font-size:11px!important;color:#94a3b8!important;margin:10px 0!important}.v2-browse{display:inline-block!important;width:auto!important;background:#fff;border:1px solid #bfdbfe;border-radius:9px;padding:7px 13px;color:var(--blue)!important;font-weight:700}
+.v2-files{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.v2-file{display:flex;align-items:center;gap:11px;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff}.v2-file.ready{border-color:#bbf7d0;background:#f8fff9}.v2-fileico{width:34px;height:34px;border-radius:9px;background:#ecfdf5;color:var(--green);display:grid;place-items:center}.v2-filetxt{min-width:0;flex:1}.v2-filetxt b{display:block;font-size:12px;color:#334155}.v2-filetxt span{font-size:11px;color:var(--muted);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v2-remove{border:0;background:none;color:#94a3b8;font-size:19px;cursor:pointer}.v2-empty{color:#94a3b8!important}.v2-note{display:flex;gap:8px;margin-top:15px;padding:11px 13px;background:#fffbeb;border-radius:10px;color:#92400e;font-size:11px;line-height:1.5}
+.v2-action{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-top:20px;padding-top:20px;border-top:1px solid #eef2f7}.v2-status{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted)}.v2-dot{width:8px;height:8px;border-radius:50%;background:#cbd5e1}.v2-dot.ok{background:#22c55e;box-shadow:0 0 0 4px #dcfce7}.v2-btn{border:0;border-radius:10px;padding:11px 18px;font-family:inherit;font-size:13px;font-weight:750;cursor:pointer;transition:.18s}.v2-btn.primary{background:var(--blue);color:#fff;min-width:230px}.v2-btn.primary:hover{background:var(--blue2);transform:translateY(-1px)}.v2-btn:disabled{background:#cbd5e1;cursor:not-allowed;transform:none}.v2-btn.secondary{background:#fff;color:#334155;border:1px solid var(--line)}
+.v2-result{display:grid;grid-template-columns:1fr 1fr;gap:14px}.v2-download{border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;gap:13px;align-items:center}.v2-download.off{opacity:.55;background:#f8fafc}.v2-dlico{width:42px;height:42px;border-radius:11px;background:#eff6ff;color:var(--blue);display:grid;place-items:center;font-size:20px}.v2-dlcopy{flex:1}.v2-dlcopy b{font-size:13px;color:var(--navy)}.v2-dlcopy span{display:block;color:var(--muted);font-size:11px;margin-top:3px}.v2-dlbtn{border:1px solid #bfdbfe;background:#fff;color:var(--blue);border-radius:9px;padding:8px 11px;font-weight:700;cursor:pointer}.v2-success{display:flex;align-items:center;gap:12px;margin-bottom:17px;padding:13px 15px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;color:#166534;font-size:12px}.v2-error{margin-top:13px;padding:11px 13px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;color:#b91c1c;font-size:12px}
+.mov{background:rgba(15,23,42,.55);backdrop-filter:blur(3px)}.mb{max-width:430px;border-radius:18px;padding:27px;box-shadow:0 25px 70px rgba(15,23,42,.22)}.mi{font-size:42px}.mt{font-size:18px;color:var(--navy)}.ms{font-size:12px}.mtbl{background:#f8fafc;border:1px solid var(--line)}.mr{font-size:12px}.v2-modal-actions{display:flex;gap:9px}.v2-choice{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}.v2-choice button{padding:14px 8px;border:1px solid var(--line);background:#fff;border-radius:11px;cursor:pointer;font-family:inherit;font-weight:700;color:#334155}.v2-choice button:hover{border-color:var(--blue);background:#eff6ff;color:var(--blue)}.v2-spinner{width:44px;height:44px;border:4px solid #dbeafe;border-top-color:var(--blue);border-radius:50%;animation:v2spin .8s linear infinite;margin:3px auto 17px}@keyframes v2spin{to{transform:rotate(360deg)}}
+@media(max-width:680px){.topbar{height:58px;padding:0 18px}.main{padding:25px 15px 45px}.v2-hero{display:block}.v2-title{font-size:24px}.v2-step{margin-top:14px}.v2-cardhead,.v2-body{padding:18px}.v2-files,.v2-result{grid-template-columns:1fr}.v2-action{align-items:stretch;flex-direction:column}.v2-btn.primary{width:100%;min-width:0}.v2-drop{min-height:170px}.v2-pill{display:none}.v2-download{padding:14px}}
+</style>
+<script id="v2-app">
+/* Version 2 UI layer — preserves the original workbook generation engine. */
+var V2={files:{tb:null,prior:null},tb:null,priorMap:{},priorDetails:{},busy:false,done:false,bufT2:null,error:null,pending:null};
+function esc(v){return String(v||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c];});}
+function modal(html,locked){document.getElementById('mb').innerHTML=html;var m=document.getElementById('mov');m.style.display='flex';m.dataset.locked=locked?'1':'0';}
+function hideV2Modal(){document.getElementById('mov').style.display='none';document.getElementById('mov').dataset.locked='0';}
+document.getElementById('mov').onclick=function(e){if(e.target===this&&this.dataset.locked!=='1')hideV2Modal();};
+function sniffFile(file,cb){
+  var reader=new FileReader();reader.onload=function(e){try{var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}),names=wb.SheetNames.map(function(x){return x.toLowerCase();}),name=file.name.toLowerCase();
+    var looksPrior=/prior|previous|py|t2|ปี\s*ก่อน|256[0-7]/i.test(name)||names.some(function(n){return /t2|bs-pl|statement|งบการเงิน/.test(n);});
+    var looksTB=/\btb\b|trial|ทดลอง|pending/i.test(name)||names.some(function(n){return /^(tb|tbdraft|trial balance|งบทดลอง)/.test(n);});
+    cb(null,looksTB&&!looksPrior?'tb':looksPrior&&!looksTB?'prior':null);
+  }catch(err){cb(err,null);}};reader.readAsArrayBuffer(file);
+}
+function receiveFile(file){if(!file)return;if(!/\.xlsx?$/.test(file.name)){showError('รองรับเฉพาะไฟล์ Excel .xlsx หรือ .xls');return;}V2.error=null;modal('<div class="v2-spinner"></div><div class="mt">กำลังตรวจสอบไฟล์</div><div class="ms">ระบบกำลังอ่านรูปแบบไฟล์โดยอัตโนมัติ</div>',true);sniffFile(file,function(err,type){if(err){hideV2Modal();showError('ไม่สามารถอ่านไฟล์นี้ได้ กรุณาตรวจสอบไฟล์แล้วลองใหม่');return;}if(type)assignFile(file,type);else{V2.pending=file;modal('<div class="mi">📄</div><div class="mt">ไฟล์นี้เป็นข้อมูลประเภทใด?</div><div class="ms">ระบบยังระบุประเภทไฟล์ไม่ได้ กรุณาเลือกเพื่อดำเนินการต่อ</div><div class="v2-choice"><button onclick="chooseType(\'tb\')">Trial Balance (TB)</button><button onclick="chooseType(\'prior\')">Prior Year T2</button></div><button class="v2-btn secondary" style="width:100%" onclick="V2.pending=null;hideV2Modal()">ยกเลิก</button>');}});}
+function chooseType(type){var f=V2.pending;V2.pending=null;if(f)assignFile(f,type);}
+function parseTBV2(file,cb){var reader=new FileReader();reader.onload=function(e){try{var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'}),best=null;wb.SheetNames.forEach(function(sn){var rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{header:1,defval:null,raw:true}),hdr=-1,dc=-1,cc=-1,nc=-1,ac=-1;for(var r=0;r<Math.min(30,rows.length);r++){var row=rows[r]||[];for(var c=0;c<row.length;c++){var v=nm(row[c]);if(/^(debit|dr|เดบิต)$/.test(v))dc=c;if(/^(credit|cr|เครดิต)$/.test(v))cc=c;if(/description|account name|ชื่อบัญชี|รายการ/.test(v))nc=c;if(/account no|account code|เลขที่บัญชี/.test(v))ac=c;}if(dc>=0&&cc>=0){hdr=r;break;}}if(hdr<0)return;if(nc<0)nc=ac>=0?ac+1:Math.max(0,dc-1);var out=[],tdr=0,tcr=0;for(var i=hdr+1;i<rows.length;i++){var row=rows[i]||[],account=String(ac>=0?row[ac]||'':'').trim(),desc=String(row[nc]||'').trim();if(!account){var mm=desc.match(/^(\d[\d-]*)\s*(.*)$/);if(mm){account=mm[1];desc=mm[2]||desc;}}if(!account&&!desc)continue;if(/^(total|grand total|รวม)/i.test(desc))continue;var dr=Number(String(row[dc]||0).replace(/,/g,''))||0,cr=Number(String(row[cc]||0).replace(/,/g,''))||0;if(!dr&&!cr)continue;var full=(account?account+' ':'')+desc;out.push({account:account,no:account.replace(/-/g,''),name:desc,desc:full.trim(),dr:dr,cr:cr});tdr+=dr;tcr+=cr;}if(out.length&&(!best||out.length>best.rows.length))best={rows:out,totalDr:tdr,totalCr:tcr,sheet:sn};});if(!best)throw new Error('ไม่พบรายการบัญชี');cb(null,best);}catch(err){cb(err,null);}};reader.readAsArrayBuffer(file);}
+function parsePriorMap(file,cb){(async function(){try{if(typeof ExcelJS==='undefined')throw new Error('ExcelJS ยังไม่พร้อมใช้งาน');var wb=new ExcelJS.Workbook();await wb.xlsx.load(await file.arrayBuffer());var allowed={};BSPL.forEach(function(x){allowed[x.c]=1;});var map={},details={},detected={},pendingSheets=wb.worksheets.filter(function(ws){return /pending\s*\d*/i.test(String(ws.name).trim());}).sort(function(a,b){return Number((b.name.match(/\d+/)||[0])[0])-Number((a.name.match(/\d+/)||[0])[0]);});function textOf(value){if(value===null||value===undefined)return'';if(typeof value==='object'){if(value.result!==undefined&&value.result!==null)return String(value.result).trim();if(value.text!==undefined)return String(value.text).trim();if(Array.isArray(value.richText))return value.richText.map(function(x){return x.text||'';}).join('').trim();}return String(value).trim();}function indexLike(v){return !!allowed[v]||(/^[A-Z]{1,3}\d{0,2}$/.test(v)&&!{OK:1,YES:1,NO:1,ADJ:1,DR:1,CR:1}[v]);}pendingSheets.forEach(function(ws){var accountRows=[];ws.eachRow({includeEmpty:false},function(row){var account='',description='',accountCol=0;for(var c=1;c<=ws.columnCount;c++){var value=textOf(row.getCell(c).value),m=value.match(/^(\d[\d-]*)(?:\s+(.+))?$/);if(m){account=m[1];description=m[2]||textOf(row.getCell(c+1).value);accountCol=c;break;}}if(account)accountRows.push({row:row,account:account,description:description,accountCol:accountCol});});var scores={},headerCols={};for(var hr=1;hr<=Math.min(ws.rowCount,12);hr++)for(var hc=1;hc<=ws.columnCount;hc++){var header=textOf(ws.getCell(hr,hc).value).toLowerCase();if(/index|mapping|map\s*index|รหัส.*index/.test(header))headerCols[hc]=1;}accountRows.forEach(function(item){for(var col=1;col<=ws.columnCount;col++){if(col===item.accountCol)continue;var v=textOf(item.row.getCell(col).value).toUpperCase();if(!indexLike(v))continue;scores[col]=(scores[col]||0)+(allowed[v]?4:1);}});var bestCol=0,bestScore=0;Object.keys(scores).forEach(function(col){var score=scores[col]+(headerCols[col]?1000:0);if(score>bestScore){bestScore=score;bestCol=Number(col);}});if(!bestCol){var headers=Object.keys(headerCols);if(headers.length)bestCol=Number(headers[0]);}if(bestCol)detected[ws.name]=bestCol;accountRows.forEach(function(item){if(!bestCol)return;var idx=textOf(item.row.getCell(bestCol).value).toUpperCase();if(!indexLike(idx))return;var key=item.account.replace(/-/g,'');if(!map[key]){map[key]=idx;details[key]={idx:idx,description:item.description,pending:textOf(item.row.getCell(bestCol+1).value),sheet:ws.name,indexColumn:bestCol};}});});if(!pendingSheets.length)throw new Error('ไม่พบชีตที่มีชื่อ Pending');if(!Object.keys(map).length)throw new Error('พบชีต '+pendingSheets.map(function(x){return x.name;}).join(', ')+' แต่ยังตรวจหาคอลัมน์ Index อัตโนมัติไม่ได้');cb(null,{map:map,details:details,sheets:pendingSheets.map(function(x){return x.name;}),detected:detected});}catch(err){cb(err,null);}})();}
+function assignFile(file,type){hideV2Modal();V2.files[type]=file;V2.done=false;V2.bufT2=null;if(type==='tb'){modal('<div class="v2-spinner"></div><div class="mt">กำลังตรวจสอบยอด TB</div><div class="ms">ตรวจสอบ Total Debit และ Total Credit</div>',true);parseTBV2(file,function(err,r){if(err||!r||!r.rows.length||(!r.totalDr&&!r.totalCr)){hideV2Modal();V2.files.tb=null;V2.tb=null;showError('ไฟล์นี้ไม่ใช่ TB หรือไม่พบยอด Debit / Credit กรุณาเลือกไฟล์ Trial Balance');return;}V2.tb=r;showBalance(r.totalDr,r.totalCr);});}else{modal('<div class="v2-spinner"></div><div class="mt">กำลังอ่าน Mapping ปีเดิม</div><div class="ms">ระบบกำลังดึง Index และรายละเอียด Pending</div>',true);parsePriorMap(file,function(err,result){hideV2Modal();if(err||!result||!Object.keys(result.map).length){V2.files.prior=null;V2.priorMap={};V2.priorDetails={};showError(err&&err.message?err.message:'ไม่พบ Mapping ในชีต Pending ของไฟล์ Prior Year T2/T3');return;}V2.priorMap=result.map;V2.priorDetails=result.details;renderV2();var pendingCount=Object.keys(result.details).filter(function(k){return result.details[k].pending;}).length;if(missingFiles().length)showMissingUpload();else showSuccess('อ่าน Mapping ได้ '+Object.keys(result.map).length+' บัญชี และรายละเอียด Pending '+pendingCount+' รายการ');});}}
+function showBalance(dr,cr){var diff=Math.abs(dr-cr),ok=diff<1;modal('<div class="mi">'+(ok?'✅':'❌')+'</div><div class="mt" style="color:'+(ok?'var(--green)':'var(--red)')+'">'+(ok?'TB Balance':'TB ไม่สมดุล')+'</div><div class="ms">'+(ok?'ยอด Debit เท่ากับ Credit พร้อมดำเนินการต่อ':'กรุณาตรวจสอบยอดในไฟล์และอัปโหลดใหม่')+'</div><div class="mtbl"><div class="mr"><span>Total Debit</span><span class="vn">'+fN(dr)+'</span></div><div class="mr"><span>Total Credit</span><span class="vn">'+fN(cr)+'</span></div><div class="mr"><span>Difference</span><span class="'+(ok?'vo':'ve')+'">'+fN(diff)+'</span></div></div><button class="v2-btn '+(ok?'primary':'secondary')+'" style="width:100%" onclick="finishBalance('+(ok?'true':'false')+')">'+(ok?'ดำเนินการต่อ':'ปิดและเลือกไฟล์ใหม่')+'</button>');}
+function showMissingUpload(){var missing=missingFiles();if(!missing.length)return;modal('<div class="mi">📌</div><div class="mt" style="color:var(--amber)">ยังขาดไฟล์</div><div class="ms">อัปโหลดสำเร็จแล้ว แต่ยังต้องเพิ่ม<br><b>'+missing.join('<br>')+'</b></div><button class="v2-btn primary" style="width:100%" onclick="hideV2Modal()">รับทราบ</button>');}
+function finishBalance(ok){hideV2Modal();if(!ok){V2.files.tb=null;V2.tb=null;}renderV2();if(ok&&missingFiles().length)setTimeout(showMissingUpload,80);}
+function showError(msg){V2.error=msg;renderV2();modal('<div class="mi">⚠️</div><div class="mt" style="color:var(--red)">ไม่สามารถดำเนินการได้</div><div class="ms">'+esc(msg)+'</div><button class="v2-btn primary" style="width:100%" onclick="hideV2Modal()">ตกลง</button>');}
+function showSuccess(msg){modal('<div class="mi">✅</div><div class="mt" style="color:var(--green)">สำเร็จ</div><div class="ms">'+esc(msg)+'</div><button class="v2-btn primary" style="width:100%" onclick="hideV2Modal()">ตกลง</button>');}
+function removeV2(type){V2.files[type]=null;if(type==='tb')V2.tb=null;if(type==='prior'){V2.priorMap={};V2.priorDetails={};}V2.done=false;V2.bufT2=null;renderV2();}
+function normMapText(v){return nm(v).replace(/^\d[\d-]*\s*/,'').replace(/[^a-z0-9ก-๙]+/gi,' ').trim();}
+function textSimilarity(a,b){a=normMapText(a);b=normMapText(b);if(!a||!b)return 0;if(a===b)return 1;if(a.indexOf(b)>=0||b.indexOf(a)>=0)return .88;function grams(s){var x={},z=s.replace(/\s+/g,'');for(var i=0;i<z.length-1;i++)x[z.slice(i,i+2)]=1;return x;}var x=grams(a),y=grams(b),inter=0,total={};Object.keys(x).forEach(function(k){total[k]=1;if(y[k])inter++;});Object.keys(y).forEach(function(k){total[k]=1;});return Object.keys(total).length?inter/Object.keys(total).length:0;}
+function fuzzyPrior(row){var key=String(row.account||row.no||'').replace(/-/g,''),cat=key.charAt(0),best=null,score=0;Object.keys(V2.priorDetails).forEach(function(k){if(k.charAt(0)!==cat)return;var d=V2.priorDetails[k],s=textSimilarity(row.name||row.desc,d.description);if(s>score){score=s;best=d;}});return best&&score>=.32?{idx:best.idx,detail:best,score:score}:null;}
+function mapAccountsV2(rows){return rows.map(function(row){var key=String(row.account||row.no||'').replace(/-/g,''),idx=V2.priorMap[key]||null,src=idx?'prior-exact':'',conf='high',matchedDetail=V2.priorDetails[key]||null;if(!idx){var near=fuzzyPrior(row);if(near){idx=near.idx;src='prior-similar';conf='mid';}}if(!idx){var embedded=findIdx(row.name||row.desc);if(embedded.code&&embedded.conf!=='low'){idx=embedded.code;src='index-db';conf=embedded.conf;}}if(!idx){src='unmapped';conf='low';}return Object.assign({},row,{idx:idx,src:src,conf:conf,matchedDetail:matchedDetail});});}
+function yellowStyle(style){var s=style?JSON.parse(JSON.stringify(style)):{};s.fill={patternType:'solid',fgColor:{rgb:'FFFF00'},bgColor:{rgb:'FFFF00'}};return s;}
+function styleObj(cell){if(!cell)return null;if(!cell.s||typeof cell.s!=='object')cell.s={};return cell.s;}
+function forceFont(cell){var s=styleObj(cell);if(!s)return;s.font=Object.assign({},s.font||{},{name:'Angsana New',sz:15});}
+function forceCenter(cell){var s=styleObj(cell);if(!s)return;s.alignment=Object.assign({},s.alignment||{},{horizontal:'center',vertical:'center'});}
+function finalizeStatementSheet(ws){if(!ws)return;Object.keys(ws).forEach(function(addr){if(addr.charAt(0)==='!')return;forceFont(ws[addr]);});['H5','H6','J5','J6','L5','L6'].forEach(function(addr){if(ws[addr])forceCenter(ws[addr]);});var range=XLSX.utils.decode_range(ws['!ref']||'A1:L120');for(var r=7;r<=range.e.r+1;r++){var current=ws['J'+r],prior=ws['L'+r];if(current&&prior){current.z=prior.z||'#,##0.00;[Red](#,##0.00);-';if(typeof current.s==='object'&&typeof prior.s==='object'){current.s.numFmt=prior.s.numFmt||current.s.numFmt;current.s.alignment=Object.assign({},current.s.alignment||{},{horizontal:'right'});}}}ws['!pageSetup']={paperSize:9,orientation:'portrait',fitToWidth:1,fitToHeight:0,scale:100};ws['!margins']={left:0.25,right:0.25,top:0.5,bottom:0.5,header:0.2,footer:0.2};ws['!rows']=ws['!rows']||[];for(var i=0;i<range.e.r+1;i++){if(!ws['!rows'][i])ws['!rows'][i]={};if(i>=6&&!ws['!rows'][i].hpt)ws['!rows'][i].hpt=18.5;}ws['!rowBreaks']=[];for(var br=39;br<range.e.r+1;br+=39)ws['!rowBreaks'].push({id:br,max:16383,man:1});}
+function generateWorkbookV2(mapped){var array=genExcel(mapped),wb=XLSX.read(array,{type:'array',cellStyles:true,cellNF:true,cellDates:true,bookFiles:true}),ws=wb.Sheets['Pending 68'],start=7;for(var i=0;i<mapped.length;i++){var r=start+i,a=mapped[i],key=String(a.account||a.no||'').replace(/-/g,''),prior=a.matchedDetail||V2.priorDetails[key]||{},sa=ws['A'+r]&&ws['A'+r].s,sb=ws['B'+r]&&ws['B'+r].s;ws['A'+r]={v:a.account||a.no||'',t:'s'};ws['B'+r]={v:a.name||a.desc||'',t:'s'};if(prior.pending)ws['M'+r]={v:prior.pending,t:'s'};if(sa)ws['A'+r].s=sa;if(sb)ws['B'+r].s=sb;if(!a.idx){for(var c=0;c<13;c++){var addr=XLSX.utils.encode_col(c)+r,cell=ws[addr]||{v:'',t:'s'};cell.s=yellowStyle(cell.s);ws[addr]=cell;}}}var last=start+mapped.length-1;ws['!ref']='A1:M'+Math.max(last,59);['BS-PL','BS-PL (E)'].forEach(function(sn){finalizeStatementSheet(wb.Sheets[sn]);});return XLSX.write(wb,{bookType:'xlsx',type:'array',compression:true,cellStyles:true,cellNF:true});}
+function missingFiles(){var x=[];if(!V2.files.tb||!V2.tb)x.push('Trial Balance (TB)');if(!V2.files.prior||!Object.keys(V2.priorMap).length)x.push('Prior Year T2/T3');return x;}
+function statementBalanceCheck(mapped){var assets=0,liabilities=0,equity=0,profit=0;mapped.forEach(function(a){var p=String(a.account||a.no||'').replace(/-/g,'').charAt(0),bal=(a.dr||0)-(a.cr||0);if(p==='1')assets+=bal;else if(p==='2')liabilities-=bal;else if(p==='3')equity-=bal;else if(/[4-9]/.test(p))profit-=bal;});var equityAndProfit=equity+profit,diff=assets-(liabilities+equityAndProfit);return{assets:assets,liabilities:liabilities,equityAndProfit:equityAndProfit,difference:diff,ok:Math.abs(diff)<1};}
+function base64Bytes(v){var bin=atob(v),out=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)out[i]=bin.charCodeAt(i);return out;}
+function cloneStyle(v){try{return JSON.parse(JSON.stringify(v||{}));}catch(e){return {};}}
+async function generateWorkbookExcelJS(mapped){if(typeof ExcelJS==='undefined')throw new Error('ไม่สามารถโหลดระบบรักษารูปแบบ Excel ได้ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วเปิดไฟล์ใหม่');var wb=new ExcelJS.Workbook();await wb.xlsx.load(base64Bytes(TB64));var pending=wb.getWorksheet('Pending 68');if(!pending)throw new Error('ไม่พบชีต Pending 68 ในต้นฉบับ');var templateRow=7,originalRows=pending.rowCount||59,sums={};for(var i=0;i<mapped.length;i++){var r=7+i,a=mapped[i],key=String(a.account||a.no||'').replace(/-/g,''),prior=a.matchedDetail||V2.priorDetails[key]||{};if(r>originalRows){for(var c=1;c<=13;c++)pending.getCell(r,c).style=cloneStyle(pending.getCell(templateRow,c).style);}pending.getCell(r,1).value=a.account||a.no||'';pending.getCell(r,2).value=a.name||a.desc||'';pending.getCell(r,9).value=a.dr||null;pending.getCell(r,10).value=a.cr||null;pending.getCell(r,11).value={formula:'I'+r+'-J'+r,result:(a.dr||0)-(a.cr||0)};pending.getCell(r,12).value=a.idx||null;pending.getCell(r,13).value=prior.pending||null;for(var pc=1;pc<=13;pc++)pending.getCell(r,pc).font=Object.assign({},pending.getCell(r,pc).font||{},{name:'Angsana New',size:15});if(!a.idx){for(var hc=1;hc<=13;hc++)pending.getCell(r,hc).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}};}else{sums[a.idx]=(sums[a.idx]||0)+((a.dr||0)-(a.cr||0));}}
+var bs=wb.getWorksheet('BS-PL');if(!bs)throw new Error('ไม่พบชีต BS-PL ในต้นฉบับ');var rowValues={};BSPL.forEach(function(item){var result=(sums[item.c]||0)*(item.s==='-'?-1:1),formula=(item.s==='-'?'-':'')+"SUMIF('Pending 68'!L:L,'BS-PL'!M"+item.r+",'Pending 68'!K:K)";rowValues[item.r]=result;bs.getCell(item.r,10).value={formula:formula,result:result};});function sumRows(from,to){var n=0;for(var sr=from;sr<=to;sr++)n+=rowValues[sr]||0;return n;}function setTotal(row,formula,result){rowValues[row]=result;bs.getCell(row,10).value={formula:formula,result:result};}setTotal(14,'SUM(J8:J13)',sumRows(8,13));setTotal(23,'SUM(J16:J22)',sumRows(16,22));setTotal(24,'J14+J23',rowValues[14]+rowValues[23]);setTotal(48,'SUM(J41:J47)',sumRows(41,47));setTotal(55,'SUM(J50:J54)',sumRows(50,54));setTotal(56,'J48+J55',rowValues[48]+rowValues[55]);var eqCheck=statementBalanceCheck(mapped);setTotal(68,'SUM(J63:J67)',eqCheck.equityAndProfit);setTotal(69,'J56+J68',rowValues[56]+rowValues[68]);setTotal(90,'SUM(J85:J89)',sumRows(85,89));setTotal(97,'SUM(J93:J96)',sumRows(93,96));setTotal(98,'J90-J97',rowValues[90]-rowValues[97]);setTotal(100,'SUM(J98:J99)',rowValues[98]+(rowValues[99]||0));setTotal(102,'SUM(J100:J101)',rowValues[100]+(rowValues[101]||0));
+['BS-PL','BS-PL (E)'].forEach(function(sn){var ws=wb.getWorksheet(sn);if(!ws)return;ws.eachRow({includeEmpty:true},function(row){row.eachCell({includeEmpty:true},function(cell){cell.font=Object.assign({},cell.font||{},{name:'Angsana New',size:15});});});for(var nr=7;nr<=ws.rowCount;nr++){var now=ws.getCell(nr,10),priorCell=ws.getCell(nr,12);if(priorCell.numFmt)now.numFmt=priorCell.numFmt;now.alignment=Object.assign({},now.alignment||{},{horizontal:'right'});priorCell.alignment=Object.assign({},priorCell.alignment||{},{horizontal:'right'});}ws.eachRow({includeEmpty:true},function(row){row.eachCell({includeEmpty:true},function(cell,col){var isText=typeof cell.value==='string'||(cell.value&&typeof cell.value==='object'&&cell.value.formula&&col<=7);if(isText)cell.alignment=Object.assign({},cell.alignment||{},{horizontal:'left',indent:0});});});var merges=(ws.model&&ws.model.merges)||[];merges.forEach(function(ref){var first=String(ref).split(':')[0],cell=ws.getCell(first),rowNo=Number((first.match(/\d+/)||[0])[0]);cell.alignment=Object.assign({},cell.alignment||{},{horizontal:rowNo<=3?'center':'left',vertical:'middle',indent:0});});for(var rr=5;rr<=ws.rowCount;rr++){var noteCell=ws.getCell(rr,8);noteCell.alignment=Object.assign({},noteCell.alignment||{},{horizontal:'center',vertical:'middle',indent:0});}[5,38,83].forEach(function(yr){[10,12].forEach(function(col){var cell=ws.getCell(yr,col);cell.alignment=Object.assign({},cell.alignment||{},{horizontal:'center',vertical:'middle',indent:0});});});[[30,31,32,33],[75,76,77,78],[110,111,112,113]].forEach(function(block){if(block[3]>ws.rowCount)return;ws.getRow(block[0]).hidden=false;ws.getRow(block[1]).hidden=false;ws.getRow(block[0]).height=18.5;ws.getRow(block[1]).height=18.5;var signCell=ws.getCell(block[2],1),nameCell=ws.getCell(block[3],1);signCell.alignment=Object.assign({},signCell.alignment||{},{horizontal:'center',vertical:'bottom',indent:0});nameCell.alignment=Object.assign({},nameCell.alignment||{},{horizontal:'center',vertical:'bottom',indent:0});ws.getRow(block[3]).height=Math.max(ws.getRow(block[3]).height||0,22);});ws.pageSetup=Object.assign({},ws.pageSetup||{},{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,horizontalCentered:false,verticalCentered:false,margins:{left:.25,right:.25,top:.5,bottom:.35,header:.2,footer:.1},printArea:'A1:L'+ws.rowCount});ws.rowBreaks=[];var visible=0;for(var pr=1;pr<=ws.rowCount;pr++){var prow=ws.getRow(pr);if(!prow.hidden)visible++;if(visible===41&&pr<ws.rowCount){if(typeof prow.addPageBreak==='function')prow.addPageBreak();visible=0;}}});wb.calcProperties.fullCalcOnLoad=true;wb.calcProperties.forceFullCalc=true;wb.calcProperties.calcMode='auto';return await wb.xlsx.writeBuffer();}
+function generateV2(){var missing=missingFiles();if(missing.length){modal('<div class="mi">📌</div><div class="mt" style="color:var(--amber)">ไฟล์ยังไม่ครบ</div><div class="ms">กรุณาอัปโหลดไฟล์ต่อไปนี้ก่อนสร้างงบการเงิน<br><b>'+missing.join('<br>')+'</b></div><button class="v2-btn primary" style="width:100%" onclick="hideV2Modal()">ตกลง</button>');return;}if(V2.busy)return;V2.busy=true;V2.error=null;renderV2();modal('<div class="v2-spinner"></div><div class="mt">กำลังสร้างงบการเงิน</div><div class="ms">กรุณารอสักครู่ ระบบกำลังตรวจสูตรรวม งบดุล และจัดหน้ากระดาษ</div>',true);setTimeout(async function(){try{var mapped=mapAccountsV2(V2.tb.rows),unmapped=mapped.filter(function(x){return !x.idx;}).length,check=statementBalanceCheck(mapped);V2.bufT2=await generateWorkbookExcelJS(mapped);V2.done=true;V2.busy=false;hideV2Modal();renderV2();var diff=Math.abs(check.difference).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});if(check.ok)showSuccess('สร้างไฟล์ T2/T3 เรียบร้อย · งบดุลผ่าน Difference '+diff+(unmapped?' · มี '+unmapped+' รายการที่ยังไม่มี Index และไฮไลต์สีเหลืองไว้แล้ว':''));else modal('<div class="mi">⚠️</div><div class="mt" style="color:var(--amber)">สร้างไฟล์แล้ว แต่งบดุลไม่ผ่าน</div><div class="ms">Difference '+diff+' บาท กรุณาตรวจรายการที่ไฮไลต์และ Mapping ก่อนใช้งาน</div><button class="v2-btn primary" style="width:100%" onclick="hideV2Modal()">รับทราบ</button>');}catch(e){V2.busy=false;hideV2Modal();showError('สร้างไฟล์ไม่สำเร็จ: '+e.message);}},650);}
+function downloadT2(){if(!V2.bufT2)return;var blob=new Blob([new Uint8Array(V2.bufT2)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='Draft_T2_T3.xlsx';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},800);}
+function downloadT3(){if(!V2.done)return;var rows=[['AMT Financial Statement'],['Draft T3'],['Status','Prototype output'],['Generated',new Date().toLocaleString('th-TH')]],ws=XLSX.utils.aoa_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Draft T3');XLSX.writeFile(wb,'Draft_T3.xlsx');}
+function fileCard(type,label){var f=V2.files[type];return '<div class="v2-file '+(f?'ready':'')+'"><div class="v2-fileico">'+(f?'✓':'＋')+'</div><div class="v2-filetxt"><b>'+label+'</b><span class="'+(f?'':'v2-empty')+'">'+(f?esc(f.name):'ไฟล์บังคับ · ต้องมี')+'</span></div>'+(f?'<button class="v2-remove" aria-label="ลบไฟล์" onclick="event.stopPropagation();removeV2(\''+type+'\')">×</button>':'')+'</div>';}
+function renderV2(){var missing=missingFiles(),ready=!missing.length,step=V2.done?3:V2.tb?2:1,main=document.getElementById('main');main.innerHTML='<section class="v2-hero"><div><div class="v2-eyebrow">Financial statement workspace</div><h1 class="v2-title">สร้างงบการเงินได้ในขั้นตอนเดียว</h1><p class="v2-sub">อัปโหลดไฟล์ ตรวจสอบยอด และดาวน์โหลด Draft ได้จากหน้านี้</p></div><div class="v2-step">ขั้นตอน <b>'+step+'</b> จาก 3</div></section><section class="v2-card"><div class="v2-cardhead"><div class="v2-icon">⇧</div><div class="v2-headcopy"><h2>อัปโหลดข้อมูล</h2><p>วางไฟล์ TB และ Prior Year T2/T3 ในช่องเดียวกัน ระบบจะจำแนกให้อัตโนมัติ</p></div><span class="v2-pill">Excel .xlsx / .xls</span></div><div class="v2-body"><div class="v2-drop" id="dz"><div><div class="v2-uploadmark">⇧</div><strong>ลากไฟล์มาวางที่นี่</strong><span>รองรับ Trial Balance และ Prior Year T2/T3</span><span class="v2-or">หรือ</span><span class="v2-browse">เลือกไฟล์จากเครื่อง</span></div></div><div class="v2-files">'+fileCard('tb','Trial Balance (TB)')+fileCard('prior','Prior Year T2/T3')+'</div><div class="v2-note"><b>i</b><span>หลังรับ TB ระบบจะแจ้งผล Balance และก่อนสร้างงบจะแจ้งทันทีหากไฟล์ยังไม่ครบ</span></div>'+(V2.error?'<div class="v2-error">'+esc(V2.error)+'</div>':'')+'<div class="v2-action"><div class="v2-status"><span class="v2-dot '+(ready?'ok':'')+'"></span>'+(ready?'ไฟล์ครบ พร้อมสร้างงบการเงิน':'ยังขาด: '+missing.join(', '))+'</div><button class="v2-btn primary" '+(V2.busy?'disabled':'')+' onclick="generateV2()">Generate Financial Statement</button></div></div></section>'+(V2.done?'<section class="v2-card" style="margin-top:18px"><div class="v2-cardhead"><div class="v2-icon" style="background:#ecfdf5;color:var(--green)">✓</div><div class="v2-headcopy"><h2>ไฟล์งบการเงินพร้อมแล้ว</h2><p>T2 และ T3 รวมอยู่ใน Excel workbook เดียวกัน</p></div><span class="v2-pill" style="background:#ecfdf5;color:var(--green)">Completed</span></div><div class="v2-body"><div class="v2-success"><b>✓</b><span>สร้างงบการเงินสำเร็จ สามารถดาวน์โหลดได้ทันที</span></div><div class="v2-result" style="grid-template-columns:1fr"><div class="v2-download"><div class="v2-dlico">T2/3</div><div class="v2-dlcopy"><b>Draft T2 & T3</b><span>Excel workbook · ไฟล์เดียว</span></div><button class="v2-dlbtn" onclick="downloadT2()">ดาวน์โหลด</button></div></div></div></section>':'');setupV2Drop();}
+function setupV2Drop(){var dz=document.getElementById('dz');if(!dz)return;dz.onclick=function(){document.getElementById('fi').click();};dz.ondragover=function(e){e.preventDefault();dz.classList.add('ov');};dz.ondragleave=function(){dz.classList.remove('ov');};dz.ondrop=function(e){e.preventDefault();dz.classList.remove('ov');Array.prototype.slice.call(e.dataTransfer.files,0,2).forEach(receiveFile);};}
+document.getElementById('fi').multiple=true;document.getElementById('fi').onchange=function(e){Array.prototype.slice.call(e.target.files,0,2).forEach(receiveFile);e.target.value='';};
+var generateWorkbookExcelJSBase=generateWorkbookExcelJS;
+generateWorkbookExcelJS=async function(mapped){
+  var firstBuffer=await generateWorkbookExcelJSBase(mapped),book=new ExcelJS.Workbook();
+  await book.xlsx.load(firstBuffer);
+  ['BS-PL','BS-PL (E)'].forEach(function(sn){
+    var ws=book.getWorksheet(sn);if(!ws)return;
+    var isEnglish=sn==='BS-PL (E)',textLastCol=isEnglish?4:7,noteCol=isEnglish?5:8,yearCols=isEnglish?[7,9]:[10,12],yearRows=isEnglish?[6,42,95]:[5,38,83];
+    var centerRows=isEnglish?[1,2,3,31,32,35,36,37,38,39,84,85,88,89,90,91,92,122,125,126]:[1,2,3,28,29,32,33,34,35,36,73,74,77,78,79,80,81,109,112,113];
+    var pages=isEnglish?[{start:1,end:36,spacer:30},{start:37,end:89,spacer:83},{start:90,end:126,spacer:121}]:[{start:1,end:33,spacer:27},{start:34,end:78,spacer:72},{start:79,end:113,spacer:108}];
+    for(var r=1;r<=ws.rowCount;r++)for(var c=1;c<=textLastCol;c++){var cell=ws.getCell(r,c);if(cell.value!==null&&cell.value!==undefined&&cell.value!=='')cell.alignment=Object.assign({},cell.alignment||{},{horizontal:'left',indent:0});}
+    var merges=(ws.model&&ws.model.merges)||[];
+    merges.forEach(function(ref){var first=String(ref).split(':')[0],cell=ws.getCell(first);cell.alignment=Object.assign({},cell.alignment||{},{horizontal:'left',vertical:'middle',indent:0});});
+    centerRows.forEach(function(rowNo){if(rowNo>ws.rowCount)return;var cell=ws.getCell(rowNo,1);cell.alignment=Object.assign({},cell.alignment||{},{horizontal:'center',vertical:'middle',indent:0});});
+    for(var n=5;n<=ws.rowCount;n++){var note=ws.getCell(n,noteCol);note.alignment=Object.assign({},note.alignment||{},{horizontal:'center',vertical:'middle',indent:0});}
+    yearRows.forEach(function(rowNo){yearCols.forEach(function(col){var year=ws.getCell(rowNo,col);year.alignment=Object.assign({},year.alignment||{},{horizontal:'center',vertical:'middle',indent:0});});});
+    ws.pageSetup=Object.assign({},ws.pageSetup||{},{paperSize:9,orientation:'portrait',fitToPage:true,fitToWidth:1,fitToHeight:0,blackAndWhite:false,draft:false,horizontalCentered:false,verticalCentered:false,margins:{left:1,right:.5,top:1,bottom:.5,header:0,footer:0},printArea:'A1:'+(isEnglish?'I':'L')+ws.rowCount});
+    ws.rowBreaks=[];
+    pages.forEach(function(page){if(page.start>ws.rowCount)return;var end=Math.min(page.end,ws.rowCount),visible=0;for(var pr=page.start;pr<=end;pr++)if(!ws.getRow(pr).hidden)visible++;var missing=Math.max(0,41-visible),spacer=ws.getRow(page.spacer);spacer.hidden=false;spacer.height=18.5*(1+missing);if(page.end<ws.rowCount){var lastRow=ws.getRow(page.end);if(typeof lastRow.addPageBreak==='function')lastRow.addPageBreak();}});
+  });
+  book.calcProperties.fullCalcOnLoad=true;book.calcProperties.forceFullCalc=true;
+  return await book.xlsx.writeBuffer();
+};
+/* Apply the approved Final workbook's print geometry exactly.  These settings
+   intentionally override the older prototype's inferred 41-visible-row layout. */
+var generateWorkbookExcelJSLayoutBase=generateWorkbookExcelJS;
+generateWorkbookExcelJS=async function(mapped){
+  var buffer=await generateWorkbookExcelJSLayoutBase(mapped),book=new ExcelJS.Workbook();
+  await book.xlsx.load(buffer);
+  var layouts={
+    'BS-PL':{
+      lastCol:'L',lastRow:125,breaks:[40,87],
+      hidden:[9,11,16,17,18,19,51,52,72,73,97,103,107,108],
+      widths:{A:3.69921875,C:3.8984375,D:10.69921875,E:13.8984375,F:9.69921875,G:8.3984375,H:9.8984375,I:.69921875,J:16.69921875,K:.69921875,L:16.69921875},
+      heights:{10:24,16:24.65,33:36.65,34:22.25,47:22,48:22,49:21.5,50:24.65,51:24.65,52:24.65,53:21.5,54:21.5,55:22,56:22,57:22,58:22,59:21.5,60:21.5,61:21.5,62:22,63:22,76:24.65,79:28.75,113:22.25,115:30,116:30,117:30,118:19.75,119:18.65},
+      defaultHeight:22.5
+    },
+    'BS-PL (E)':{
+      lastCol:'I',lastRow:139,breaks:[42,98],
+      hidden:[10,13,17,18,19,20,51,54,55,57,59,60,61,62,63,64,65,71,72,73,76,77,78,81,82,110,116,120,121],
+      widths:{A:3.8984375,B:3.59765625,C:7.8984375,D:35.8984375,E:9,F:1.19921875,G:16.69921875,H:.59765625,I:16.8984375},
+      heights:{4:8.25,35:32.4,46:8.25,67:21.5,87:21.5,88:22.25,89:22.25,90:22.25,91:22.25,92:9,102:10.25,105:8.75,113:7.5,126:22.25,129:41.4,134:16.25},
+      defaultHeight:21.75
+    }
+  };
+  Object.keys(layouts).forEach(function(sn){
+    var ws=book.getWorksheet(sn),cfg=layouts[sn];if(!ws)return;
+    ws.pageSetup=Object.assign({},ws.pageSetup||{}, {
+      paperSize:274,orientation:'portrait',fitToPage:false,firstPageNumber:6,useFirstPageNumber:true,
+      horizontalCentered:false,verticalCentered:false,
+      margins:{left:1,right:.5,top:1,bottom:.5,header:.47244094488189,footer:.196850393700787},
+      printArea:'A1:'+cfg.lastCol+cfg.lastRow
+    });
+    Object.keys(cfg.widths).forEach(function(col){ws.getColumn(col).width=cfg.widths[col];});
+    var hidden={};cfg.hidden.forEach(function(r){hidden[r]=true;});
+    for(var r=1;r<=cfg.lastRow;r++){
+      var row=ws.getRow(r);row.hidden=!!hidden[r];row.height=cfg.heights[r]||cfg.defaultHeight;
+    }
+    ws.rowBreaks=[];
+    cfg.breaks.forEach(function(r){var row=ws.getRow(r);if(typeof row.addPageBreak==='function')row.addPageBreak();});
+    /* Certification and signature blocks are centered in the approved layout. */
+    for(var rr=1;rr<=cfg.lastRow;rr++){
+      var shouldCenter=false;
+      for(var cc=1;cc<=ws.columnCount;cc++){
+        var value=ws.getCell(rr,cc).value,text='';
+        if(typeof value==='string')text=value;
+        else if(value&&typeof value==='object'&&typeof value.result==='string')text=value.result;
+        text=text.toLowerCase();
+        if(text.indexOf('อนุมัติจากที่ประชุม')>=0||text.indexOf('ขอรับรองว่า')>=0||text.indexOf('ลงชื่อ')>=0||text.indexOf('กรรมการ')>=0||text.indexOf('approved by')>=0||text.indexOf('i certify')>=0||text.indexOf('director')>=0){shouldCenter=true;break;}
+      }
+      if(shouldCenter){
+        for(var ac=1;ac<=ws.columnCount;ac++)ws.getCell(rr,ac).alignment=Object.assign({},ws.getCell(rr,ac).alignment||{},{horizontal:'center',vertical:'middle',indent:0});
+        var next=rr+1;
+        if(next<=cfg.lastRow){
+          var nextText='';for(var nc=1;nc<=ws.columnCount;nc++){var nv=ws.getCell(next,nc).value;if(typeof nv==='string')nextText+=nv;}
+          if(nextText.trim())for(var xc=1;xc<=ws.columnCount;xc++)ws.getCell(next,xc).alignment=Object.assign({},ws.getCell(next,xc).alignment||{},{horizontal:'center',vertical:'middle',indent:0});
+        }
+      }
+    }
+    if(sn==='BS-PL (E)'){
+      for(var er=1;er<=cfg.lastRow;er++){
+        for(var ec=1;ec<=ws.columnCount;ec++){
+          var ecell=ws.getCell(er,ec),ev=ecell.value,et=typeof ev==='string'?ev.toLowerCase():'';
+          if(et.indexOf('unit')>=0&&et.indexOf('baht')>=0)ecell.alignment=Object.assign({},ecell.alignment||{},{horizontal:'left',vertical:'middle',indent:0});
+        }
+        [7,9].forEach(function(col){
+          var amount=ws.getCell(er,col),value=amount.value,isYear=(typeof value==='number'&&value>=1900&&value<=3000)||(typeof value==='string'&&/^\d{4}$/.test(value.trim()));
+          if(value!==null&&value!==undefined&&value!==''&&!isYear)amount.alignment=Object.assign({},amount.alignment||{},{horizontal:'left',vertical:'middle',indent:0});
+        });
+      }
+    }
+  });
+  book.calcProperties.fullCalcOnLoad=true;book.calcProperties.forceFullCalc=true;
+  return await book.xlsx.writeBuffer();
+};
+/* Final workflow: the Prior Year T2/T3 uploaded with the TB is the workbook
+   template.  Do not rebuild or restyle statement sheets; update data/formulas only. */
+generateWorkbookExcelJS=async function(mapped){
+  if(typeof ExcelJS==='undefined')throw new Error('ไม่สามารถโหลดระบบรักษารูปแบบ Excel ได้');
+  if(!V2.files.prior)throw new Error('กรุณาอัปโหลดไฟล์ TE2,3 ที่ใช้เป็นแม่แบบ');
+  var wb=new ExcelJS.Workbook(),templateBuffer=await V2.files.prior.arrayBuffer();
+  await wb.xlsx.load(templateBuffer);
+  var pending=wb.getWorksheet('Pending 68');
+  if(!pending)throw new Error('ไม่พบชีต Pending 68 ในไฟล์ TE2,3 ที่อัปโหลด');
+  var firstRow=7,originalPendingRows=pending.rowCount,oldLast=Math.max(originalPendingRows,firstRow+mapped.length-1),templateRow=pending.getRow(firstRow),sums={};
+  for(var clearRow=firstRow;clearRow<=oldLast;clearRow++)for(var clearCol=1;clearCol<=13;clearCol++)pending.getCell(clearRow,clearCol).value=null;
+  mapped.forEach(function(a,i){
+    var r=firstRow+i,row=pending.getRow(r),key=String(a.account||a.no||'').replace(/-/g,''),prior=a.matchedDetail||V2.priorDetails[key]||{};
+    if(r>originalPendingRows){row.height=templateRow.height;for(var c=1;c<=13;c++)row.getCell(c).style=cloneStyle(templateRow.getCell(c).style);}
+    row.getCell(1).value=a.account||a.no||'';
+    row.getCell(2).value=a.name||a.desc||'';
+    row.getCell(9).value=a.dr||null;
+    row.getCell(10).value=a.cr||null;
+    row.getCell(11).value={formula:'I'+r+'-J'+r,result:(a.dr||0)-(a.cr||0)};
+    row.getCell(12).value=a.idx||null;
+    row.getCell(13).value=prior.pending||null;
+    if(!a.idx){for(var hc=1;hc<=13;hc++)row.getCell(hc).fill={type:'pattern',pattern:'solid',fgColor:{argb:'FFFFFF00'}};}
+    else sums[a.idx]=(sums[a.idx]||0)+((a.dr||0)-(a.cr||0));
+  });
+  var bs=wb.getWorksheet('BS-PL');
+  if(!bs)throw new Error('ไม่พบชีต BS-PL ในไฟล์ TE2,3 ที่อัปโหลด');
+  /* Locate statement rows inside the uploaded company's template.  Never use
+     the original company's row numbers because they can overwrite titles. */
+  var signByCode={},statementRowCodes={},statementIndexColumn=0,indexDetectionMethod='';BSPL.forEach(function(item){signByCode[item.c]=item.s||'';});
+  function statementText(value){if(value===null||value===undefined)return'';if(typeof value==='object'){if(value.result!==undefined&&value.result!==null)return String(value.result).trim();if(value.text!==undefined)return String(value.text).trim();}return String(value).trim();}
+  function statementColumnNumber(letters){var n=0;String(letters||'').toUpperCase().split('').forEach(function(ch){n=n*26+ch.charCodeAt(0)-64;});return n;}
+  function statementColumnLetter(n){var s='';while(n>0){n--;s=String.fromCharCode(65+n%26)+s;n=Math.floor(n/26);}return s;}
+  /* Resolve the Index column in descending order of reliability:
+     1) criteria references in existing SUMIF formulas;
+     2) a column containing many recognised Index codes;
+     3) the column immediately after the prior-year header;
+     4) user selection when the template provides no reliable evidence. */
+  var formulaColumnScores={};
+  for(var formulaRow=1;formulaRow<=bs.rowCount;formulaRow++)for(var formulaCol=1;formulaCol<=bs.columnCount;formulaCol++){
+    var formulaValue=bs.getCell(formulaRow,formulaCol).value,formulaText=formulaValue&&typeof formulaValue==='object'&&formulaValue.formula?String(formulaValue.formula):'';
+    var criteriaMatch=/SUMIF\s*\(\s*[^,;]+[,;]\s*(?:'BS-PL'!)?\$?([A-Z]{1,3})\$?\d+\s*[,;]/i.exec(formulaText);
+    if(criteriaMatch){var formulaIndexColumn=statementColumnNumber(criteriaMatch[1]);formulaColumnScores[formulaIndexColumn]=(formulaColumnScores[formulaIndexColumn]||0)+1;}
+  }
+  var bestFormulaColumn=0,bestFormulaScore=0;Object.keys(formulaColumnScores).forEach(function(col){if(formulaColumnScores[col]>bestFormulaScore){bestFormulaColumn=Number(col);bestFormulaScore=formulaColumnScores[col];}});
+  if(bestFormulaColumn){statementIndexColumn=bestFormulaColumn;indexDetectionMethod='สูตรเดิม';}
+  if(!statementIndexColumn){
+    var codeColumnScores={},bestCodeColumn=0,bestCodeScore=0,secondCodeScore=0;
+    for(var scoreCol=9;scoreCol<=bs.columnCount;scoreCol++)for(var scoreRow=1;scoreRow<=bs.rowCount;scoreRow++){
+      var scoreCandidate=statementText(bs.getCell(scoreRow,scoreCol).value).toUpperCase();
+      if(signByCode.hasOwnProperty(scoreCandidate))codeColumnScores[scoreCol]=(codeColumnScores[scoreCol]||0)+1;
+    }
+    Object.keys(codeColumnScores).forEach(function(col){var score=codeColumnScores[col];if(score>bestCodeScore){secondCodeScore=bestCodeScore;bestCodeScore=score;bestCodeColumn=Number(col);}else if(score>secondCodeScore)secondCodeScore=score;});
+    if(bestCodeScore>=2&&(secondCodeScore===0||bestCodeScore>=secondCodeScore*1.5)){statementIndexColumn=bestCodeColumn;indexDetectionMethod='รหัส Index ในคอลัมน์';}
+  }
+  if(!statementIndexColumn){
+    var priorYearColumn=0;
+    for(var yearRow=1;yearRow<=bs.rowCount;yearRow++)for(var yearCol=1;yearCol<=bs.columnCount;yearCol++){
+      var yearHeader=statementText(bs.getCell(yearRow,yearCol).value).replace(/\s+/g,'');
+      if(/^(?:25|20)\d{2}$/.test(yearHeader)&&yearCol>priorYearColumn)priorYearColumn=yearCol;
+    }
+    if(priorYearColumn){statementIndexColumn=priorYearColumn+1;indexDetectionMethod='คอลัมน์ถัดจากปีก่อน';}
+  }
+  if(!statementIndexColumn){
+    var selectedIndexColumn=window.prompt('ระบบไม่สามารถระบุคอลัมน์ Index ในชีต BS-PL ได้ กรุณาระบุตัวอักษรคอลัมน์ เช่น M');
+    if(selectedIndexColumn&&/^[A-Za-z]{1,3}$/.test(selectedIndexColumn.trim())){statementIndexColumn=statementColumnNumber(selectedIndexColumn.trim());indexDetectionMethod='ผู้ใช้ระบุ';}
+    else throw new Error('ไม่สามารถระบุคอลัมน์ Index ได้ กรุณาตรวจไฟล์เลื่อนแท่งแล้วลองใหม่');
+  }
+  for(var statementRow=1;statementRow<=bs.rowCount;statementRow++){
+    var code='',label='';for(var labelCol=1;labelCol<=8;labelCol++)label+=statementText(bs.getCell(statementRow,labelCol).value)+' ';
+    var cleanStatementLabel=label.replace(/\s+/g,'').trim();
+    if(!cleanStatementLabel||/บริษัท|งบฐานะการเงิน|งบกำไรขาดทุน|สำหรับปี|ณวันที่|หน่วย:บาท|หมายเหตุประกอบ|ขอรับรอง|ลงชื่อ|กรรมการ|อนุมัติจากที่ประชุม/.test(cleanStatementLabel))continue;
+    /* Exclude structural rows before resolving an Index.  These rows can have
+       visible labels, but they are headings or calculated statement totals. */
+    if(/^(สินทรัพย์|สินทรัพย์หมุนเวียน|สินทรัพย์ไม่หมุนเวียน|หนี้สินและส่วนของผู้ถือหุ้น|หนี้สิน|หนี้สินหมุนเวียน|หนี้สินไม่หมุนเวียน|ส่วนของผู้ถือหุ้น|รายได้|ค่าใช้จ่าย|ทุนเรือนหุ้น|ทุนจดทะเบียน|ทุนที่ชำระแล้ว|กำไร\(ขาดทุน\)สะสม)$/.test(cleanStatementLabel)||/^รวม/.test(cleanStatementLabel)||/^กำไร\(ขาดทุน\)/.test(cleanStatementLabel))continue;
+    var indexCell=bs.getCell(statementRow,statementIndexColumn),candidate=statementText(indexCell.value).toUpperCase();
+    if(signByCode.hasOwnProperty(candidate))code=candidate;
+    /* Use the label mapper only to recognise a genuine line-item row.  Never
+       write the inferred code into BS-PL: SUMIF must keep linking to the
+       existing Index cell, even when that cell is currently blank. */
+    if(!code&&cleanStatementLabel.length>=3){var detectedIndex=findIdx(label);if(detectedIndex&&detectedIndex.code&&detectedIndex.conf!=='low'&&signByCode.hasOwnProperty(detectedIndex.code))code=detectedIndex.code;}
+    if(!code)continue;
+    statementRowCodes[statementRow]=code;
+    var sign=signByCode[code],hasExistingIndex=signByCode.hasOwnProperty(candidate),result=hasExistingIndex?(sums[candidate]||0)*(signByCode[candidate]==='-'?-1:1):0;
+    bs.getCell(statementRow,10).value={formula:(sign==='-'?'-':'')+"SUMIF('Pending 68'!L:L,'BS-PL'!"+indexCell.address+",'Pending 68'!K:K)",result:result};
+  }
+  /* Financial-statement totals are rebuilt from accounting labels, not from
+     the old template ranges, because rows may have been inserted or moved. */
+  function rowLabel(rowNo){var s='';for(var c=1;c<=8;c++){var v=bs.getCell(rowNo,c).value;if(typeof v==='string')s+=v;}return s.replace(/\s+/g,'');}
+  function findLabel(text,exclude){for(var r=1;r<=bs.rowCount;r++){var label=rowLabel(r);if(label.indexOf(text)>=0&&(!exclude||label.indexOf(exclude)<0))return r;}return 0;}
+  function findExact(text){for(var r=1;r<=bs.rowCount;r++)if(rowLabel(r)===text)return r;return 0;}
+  function valueAt(rowNo){var v=bs.getCell(rowNo,10).value;if(typeof v==='number')return v;if(v&&typeof v==='object'&&typeof v.result==='number')return v.result;return 0;}
+  function sumValue(from,to){var n=0;for(var r=from;r<=to;r++)n+=valueAt(r);return n;}
+  function setFormula(rowNo,formula,result){if(rowNo)bs.getCell(rowNo,10).value={formula:formula,result:result};}
+  function sectionTotal(heading,total){if(!heading||!total||heading>=total)return 0;var result=sumValue(heading+1,total-1);setFormula(total,'SUM(J'+(heading+1)+':J'+(total-1)+')',result);return result;}
+  var currentAssets=findLabel('สินทรัพย์หมุนเวียน','รวม'),totalCurrentAssets=findLabel('รวมสินทรัพย์หมุนเวียน');
+  var noncurrentAssets=findLabel('สินทรัพย์ไม่หมุนเวียน','รวม'),totalNoncurrentAssets=findLabel('รวมสินทรัพย์ไม่หมุนเวียน');
+  var totalAssets=findExact('รวมสินทรัพย์');
+  var currentLiabilities=findLabel('หนี้สินหมุนเวียน','รวม'),totalCurrentLiabilities=findLabel('รวมหนี้สินหมุนเวียน');
+  var noncurrentLiabilities=findLabel('หนี้สินไม่หมุนเวียน','รวม'),totalNoncurrentLiabilities=findLabel('รวมหนี้สินไม่หมุนเวียน');
+  var totalLiabilities=findExact('รวมหนี้สิน');
+  var paidCapital=findLabel('ทุนที่ชำระแล้ว'),totalEquity=findLabel('รวมส่วนของผู้ถือหุ้น','หนี้สินและ');
+  var revenueHeading=findExact('รายได้'),totalRevenue=findExact('รวมรายได้');
+  var expenseHeading=findExact('ค่าใช้จ่าย'),totalExpense=findExact('รวมค่าใช้จ่าย');
+  var profitBeforeFinanceTax=findLabel('กำไร(ขาดทุน)ก่อนต้นทุนทางการเงินและภาษีเงินได้');
+  var financeCost=findExact('ต้นทุนทางการเงิน'),profitBeforeTax=findExact('กำไร(ขาดทุน)ก่อนภาษีเงินได้');
+  var incomeTax=findExact('ภาษีเงินได้'),netProfit=findExact('กำไร(ขาดทุน)สุทธิ');
+  var a1=sectionTotal(currentAssets,totalCurrentAssets),a2=sectionTotal(noncurrentAssets,totalNoncurrentAssets);
+  if(totalAssets&&totalCurrentAssets&&totalNoncurrentAssets)setFormula(totalAssets,'J'+totalCurrentAssets+'+J'+totalNoncurrentAssets,a1+a2);
+  var l1=sectionTotal(currentLiabilities,totalCurrentLiabilities),l2=sectionTotal(noncurrentLiabilities,totalNoncurrentLiabilities);
+  if(totalLiabilities&&totalCurrentLiabilities&&totalNoncurrentLiabilities)setFormula(totalLiabilities,'J'+totalCurrentLiabilities+'+J'+totalNoncurrentLiabilities,l1+l2);
+  if(paidCapital&&totalEquity&&paidCapital<totalEquity){var eq=sumValue(paidCapital,totalEquity-1);setFormula(totalEquity,'SUM(J'+paidCapital+':J'+(totalEquity-1)+')',eq);}
+  var rev=sectionTotal(revenueHeading,totalRevenue),exp=sectionTotal(expenseHeading,totalExpense);
+  if(profitBeforeFinanceTax&&totalRevenue&&totalExpense)setFormula(profitBeforeFinanceTax,'J'+totalRevenue+'-J'+totalExpense,rev-exp);
+  if(financeCost){var fv=bs.getCell(financeCost,10).value,ff=fv&&typeof fv==='object'?String(fv.formula||''):'';ff=ff.replace(/^\s*[-+]/,'');setFormula(financeCost,'-'+(ff||'SUMIF(\'Pending 68\'!L:L,M'+financeCost+',\'Pending 68\'!K:K)'),-Math.abs(valueAt(financeCost)));}
+  if(incomeTax){var tv=bs.getCell(incomeTax,10).value,tf=tv&&typeof tv==='object'?String(tv.formula||''):'';tf=tf.replace(/^\s*[-+]/,'');setFormula(incomeTax,'-'+(tf||'SUMIF(\'Pending 68\'!L:L,M'+incomeTax+',\'Pending 68\'!K:K)'),-Math.abs(valueAt(incomeTax)));}
+  [financeCost,incomeTax].forEach(function(rowNo){if(!rowNo)return;var cell=bs.getCell(rowNo,10);cell.numFmt='#,##0.00;(#,##0.00);-';cell.font=Object.assign({},cell.font||{},{color:{argb:'FF000000'}});});
+  if(profitBeforeTax&&profitBeforeFinanceTax&&financeCost)setFormula(profitBeforeTax,'SUM(J'+profitBeforeFinanceTax+',J'+financeCost+')',valueAt(profitBeforeFinanceTax)+valueAt(financeCost));
+  if(netProfit&&profitBeforeTax&&incomeTax)setFormula(netProfit,'J'+profitBeforeTax+'+J'+incomeTax,valueAt(profitBeforeTax)+valueAt(incomeTax));
+  /* Final rule: mirror the prior-year total formula structure.  Only total and
+     profit rows are copied; L-column references are translated to J. */
+  for(var mirrorRow=1;mirrorRow<=bs.rowCount;mirrorRow++){
+    var mirrorLabel=rowLabel(mirrorRow),priorValue=bs.getCell(mirrorRow,12).value;
+    var priorFormula=priorValue&&typeof priorValue==='object'?String(priorValue.formula||''):'';
+    var isCalculatedRow=/^(รวม|กำไร\(ขาดทุน\))/.test(mirrorLabel);
+    if(isCalculatedRow&&priorFormula&&priorFormula.indexOf('SUMIF')<0&&/(\$?L\$?\d+)/i.test(priorFormula)){
+      var currentFormula=priorFormula.replace(/(\$?)L(\$?\d+)/gi,'$1J$2');
+      bs.getCell(mirrorRow,10).value={formula:currentFormula};
+    }
+  }
+  /* Finance cost and income tax are always negative SUMIF formulas, even when
+     the prior-year total pattern was mirrored above. */
+  function negativeSumif(rowNo){if(!rowNo)return;var code=statementRowCodes[rowNo]||'';if(!code)return;var indexCell=bs.getCell(rowNo,statementIndexColumn),existingCode=statementText(indexCell.value).toUpperCase(),indexRef="'BS-PL'!"+indexCell.address,result=signByCode.hasOwnProperty(existingCode)?-Math.abs(sums[existingCode]||0):0,cell=bs.getCell(rowNo,10);cell.value={formula:"-(SUMIF('Pending 68'!L:L,"+indexRef+",'Pending 68'!K:K))",result:result};cell.numFmt='#,##0.00;(#,##0.00);-';cell.font=Object.assign({},cell.font||{},{color:{argb:'FF000000'}});}
+  negativeSumif(financeCost);negativeSumif(incomeTax);
+  wb.calcProperties.fullCalcOnLoad=true;wb.calcProperties.forceFullCalc=true;wb.calcProperties.calcMode='auto';
+  return await wb.xlsx.writeBuffer();
+};
+/* Post-generation validation checks the financial statement population, not
+   the original TB (the TB was already checked immediately after upload). */
+generateV2=function(){
+  var missing=missingFiles();if(missing.length){modal('<div class="mi">📌</div><div class="mt" style="color:var(--amber)">ไฟล์ยังไม่ครบ</div><div class="ms">กรุณาอัปโหลด<br><b>'+missing.join('<br>')+'</b></div><button class="v2-btn primary" style="width:100%" onclick="hideV2Modal()">ตกลง</button>');return;}
+  if(V2.busy)return;V2.busy=true;V2.error=null;renderV2();modal('<div class="v2-spinner"></div><div class="mt">กำลังสร้างและตรวจงบการเงิน</div><div class="ms">ตรวจสอบเฉพาะรายการที่เข้าสู่งบหลัง Mapping</div>',true);
+  setTimeout(async function(){try{
+    var mapped=mapAccountsV2(V2.tb.rows),unmappedRows=mapped.filter(function(x){return !x.idx;}),statementRows=mapped.filter(function(x){return !!x.idx;}),check=statementBalanceCheck(statementRows);
+    V2.bufT2=await generateWorkbookExcelJS(mapped);V2.done=true;V2.busy=false;hideV2Modal();renderV2();
+    var diff=Math.abs(check.difference),diffText=diff.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(check.ok&&!unmappedRows.length){showSuccess('สร้างไฟล์ T2/T3 เรียบร้อย · งบการเงินดุล Difference '+diffText);return;}
+    var list=unmappedRows.slice(0,10).map(function(x){var bal=(Number(x.dr)||0)-(Number(x.cr)||0);return '<div style="display:flex;gap:10px;justify-content:space-between;text-align:left;margin-top:6px"><span>'+esc(String(x.account||x.no||''))+' '+esc(String(x.name||x.desc||''))+'</span><b style="white-space:nowrap">'+fN(bal)+'</b></div>';}).join('');
+    var more=unmappedRows.length>10?'<div style="margin-top:7px">และอีก '+(unmappedRows.length-10)+' รายการ</div>':'';
+    modal('<div class="mi">⚠️</div><div class="mt" style="color:var(--amber)">งบการเงินยังตรวจไม่ผ่าน</div><div class="ms">Difference หลัง Mapping <b>'+diffText+'</b> บาท'+(unmappedRows.length?'<br>มีรายการที่ยังไม่เข้าสู่งบเพราะไม่มี Index <b>'+unmappedRows.length+'</b> รายการ':'<br>Mapping ครบแล้ว กรุณาตรวจการจัดกลุ่ม Index')+'</div>'+(list?'<div class="mtbl" style="max-height:230px;overflow:auto">'+list+more+'</div>':'')+'<button class="v2-btn primary" style="width:100%" onclick="hideV2Modal()">รับทราบและตรวจไฟล์</button>');
+  }catch(e){V2.busy=false;hideV2Modal();showError('สร้างไฟล์ไม่สำเร็จ: '+e.message);}},650);
+};
+renderV2();
+</script>
+</body>
+</html>
